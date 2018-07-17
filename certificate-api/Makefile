@@ -1,5 +1,5 @@
 # name of your application
-APPLICATION = name_encode_decode
+APPLICATION = name_certificate
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native

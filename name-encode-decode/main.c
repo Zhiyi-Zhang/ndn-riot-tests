@@ -22,16 +22,25 @@ int main(void)
     puts("All up, running the shell now");
     char line_buf[SHELL_DEFAULT_BUFSIZE];
 
-    char name_str[] = "/ndn/zhiyi";
+    char name_str[] = "/ndn/zhiyi/001/bbb/a/dd";
     ndn_shared_block_t* shared_block = ndn_name_from_uri(name_str, sizeof(name_str));
-    puts("the input name is \n");
+
+    ndn_name_component_t comp;
+    ndn_name_get_component_from_block(&shared_block->block, 2, &comp);
 
     puts("start decode");
     ndn_name_t name;
     ndn_name_wire_decode(&shared_block->block, &name);
     printf("\nsize of the name is %d \n", name.size);
-    printf("first component %s \n", (char *)(name.comps[0].buf));
-    printf("second component %s \n", (char *)(name.comps[1].buf));
+    printf("component 1: %s \n", (char *)(name.comps[0].buf));
+    printf("component 2: %s \n", (char *)(name.comps[1].buf));
+    printf("component 3: %s \n", (char *)(name.comps[2].buf));
+    printf("component 4: %s \n", (char *)(name.comps[3].buf));
+    printf("component 5: %s \n", (char *)(name.comps[4].buf));
+    printf("component 5: %s \n", (char *)(name.comps[5].buf));
+
+    free(name.comps);
+    ndn_shared_block_release(shared_block);
 
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 
