@@ -62,11 +62,6 @@ static void _finish_sha256(const uECC_HashContext *base, uint8_t *hash_result)
 }
 #endif
 
-#define DPRINT(...) printf(__VA_ARGS__)
-//#define DPRINT(...) {}
-
-static ndn_app_t* handle = NULL;
-
 //ecc key derived from the QR code
 static uint8_t ecc_key_pri[] = {             
      0x38, 0x67, 0x54, 0x73, 0x8B, 0x72, 0x4C, 0xD6,
@@ -86,17 +81,36 @@ static uint8_t ecc_key_pub[] = {
     0x1B, 0xD1, 0xAF, 0x76, 0xDB, 0xAD, 0xB8, 0xCE
 };
 
+static uint8_t com_key_pri[] = {             
+     0x38, 0x67, 0x54, 0x73, 0x8B, 0x72, 0x4C, 0xD6,
+     0x3E, 0xBD, 0x52, 0xF3, 0x64, 0xD8, 0xF5, 0x7F,
+     0xB5, 0xE6, 0xF2, 0x9F, 0xC2, 0x7B, 0xD6, 0x90,
+     0x42, 0x9D, 0xC8, 0xCE, 0xF0, 0xDE, 0x75, 0xB3
+ };
+
+static uint8_t com_key_pub[] = {
+    0x2C, 0x3C, 0x18, 0xCB, 0x31, 0x88, 0x0B, 0xC3,
+    0x73, 0xF4, 0x4A, 0xD4, 0x3F, 0x8C, 0x80, 0x24,
+    0xD4, 0x8E, 0xBE, 0xB4, 0xAD, 0xF0, 0x69, 0xA6,
+    0xFE, 0x29, 0x12, 0xAC, 0xC1, 0xE1, 0x26, 0x7E,
+    0x2B, 0x25, 0x69, 0x02, 0xD5, 0x85, 0x51, 0x4B,
+    0x91, 0xAC, 0xB9, 0xD1, 0x19, 0xE9, 0x5E, 0x97,
+    0x20, 0xBB, 0x16, 0x2A, 0xD3, 0x2F, 0xB5, 0x11,
+    0x1B, 0xD1, 0xAF, 0x76, 0xDB, 0xAD, 0xB8, 0xCE
+};
+#define DPRINT(...) printf(__VA_ARGS__)
+
 //ecc key generated for communication use (CK)
-static uint8_t com_key_pri[32] = {0};
-static uint8_t com_key_pub[64] = {0};
+
 static uint8_t anchor_key_pub[64] = {0};
 static ndn_block_t token;
+
+static ndn_app_t* handle = NULL;
 static uint32_t begin;
 
 static ndn_block_t anchor_global;
 static ndn_block_t certificate_global;
 static ndn_block_t home_prefix;
-static ndn_block_t identity_global;
 
 //segment for signature and buffer_signature to write, returning the pointer to the buffer
 //this function will automatically skip the NAME header, so just pass the whole NAME TLV 
@@ -154,7 +168,6 @@ static int certificate_timeout(ndn_block_t* interest);
 
 static int on_certificate_response(ndn_block_t* interest, ndn_block_t* data)
 {
-    (void)interest;
     /*
     Incoming Packet Format
     Name: I2/version
@@ -162,18 +175,14 @@ static int on_certificate_response(ndn_block_t* interest, ndn_block_t* data)
     Signature: sign by AKpri
     */
 
-    uint32_t end = xtimer_now_usec();
     ndn_block_t name1;
+    (void)interest;
 
     int r = ndn_data_get_name(data, &name1);  //need implementation
     assert(r == 0);
-    DPRINT("device (pid=%" PRIkernel_pid "): certificate response received, name=",
-           handle->id);
+    DPRINT("certificate response received, name=");
     ndn_name_print(&name1);
     putchar('\n');
-
-    DPRINT("device (pid=%" PRIkernel_pid "): RTT=%"PRIu32"us\n",
-           handle->id, end - begin);    
 
     r = ndn_data_verify_signature(data, anchor_key_pub, sizeof(anchor_key_pub)); 
     if (r != 0)
@@ -194,9 +203,6 @@ static int on_certificate_response(ndn_block_t* interest, ndn_block_t* data)
         buf_cert += 2;
         certificate_global.buf = buf_cert;
         certificate_global.len = content_cert.len - 2;
-        
-        //get the identity
-        ndn_data_get_name(&certificate_global, &identity_global);
    
     }
     return NDN_APP_CONTINUE;  // block forever...
@@ -224,8 +230,8 @@ static int ndn_app_express_certificate_request(void)
     ndn_shared_block_release(sn1_cert);
 
     /* make the CKpub */
-    uECC_Curve curve1 = uECC_secp256r1();
-    uECC_make_key(com_key_pub, com_key_pri, curve1);
+    //uECC_Curve curve1 = uECC_secp256r1();
+    //uECC_make_key(com_key_pub, com_key_pri, curve1);
 
     /* append the CKpub */
     uint8_t* buf_ck = (uint8_t*)malloc(64);  //64 bytes reserved for hash
@@ -288,15 +294,12 @@ static int ndn_app_express_certificate_request(void)
     buf_bk = NULL;
     ndn_shared_block_release(sn9_cert);
 
-    uint32_t lifetime = 1000;  // 1 sec
-
-    DPRINT("device (pid=%" PRIkernel_pid "): express Certificate Request, name=",
-           handle->id);
+    DPRINT("device express Certificate Request, name=");
     ndn_name_print(&sn10_cert->block);
     putchar('\n');
 
-
     begin = xtimer_now_usec();
+    uint32_t lifetime = 1000;  // 1 sec
     int r = ndn_app_express_interest(handle, &sn10_cert->block, NULL, lifetime,
                                      on_certificate_response, 
                                      certificate_timeout); 
@@ -312,7 +315,6 @@ static int ndn_app_express_certificate_request(void)
 
 static int on_bootstrapping_response(ndn_block_t* interest, ndn_block_t* data)
 {
-    (void)interest;
     /* 
     Incoming Packet Format
     Name: echo of I1->append /version
@@ -324,18 +326,14 @@ static int on_bootstrapping_response(ndn_block_t* interest, ndn_block_t* data)
                                Signature: AKpri
     Signature: AKpri
     */
-    uint32_t end = xtimer_now_usec();
-
+    (void)interest;
+    DPRINT("In !\n");
     ndn_block_t name;
     int r = ndn_data_get_name(data, &name); 
     assert(r == 0);
-    DPRINT("device (pid=%" PRIkernel_pid "): bootstrap response received, name=",
-           handle->id);
+    DPRINT("device bootstrap response received, name=");
     ndn_name_print(&name);
     putchar('\n');
-
-    DPRINT("device (pid=%" PRIkernel_pid "): RTT=%"PRIu32"us\n",
-           handle->id, end - begin);
 
     ndn_block_t content;
     r = ndn_data_get_content(data, &content);
@@ -344,6 +342,7 @@ static int on_bootstrapping_response(ndn_block_t* interest, ndn_block_t* data)
     const uint8_t* buf = content.buf;  //receive the pointer from the content type
     int len = content.len; //receive the content length
 
+    DPRINT("content TLV length= %d\n", len);
     //skip content type
     buf += 1;
     len -= 1;
@@ -351,8 +350,9 @@ static int on_bootstrapping_response(ndn_block_t* interest, ndn_block_t* data)
     //skip content length (perhaps > 255 bytes)
     uint32_t num;
     int cl = ndn_block_get_var_number(buf, len, &num); 
+    DPRINT("content L length= %d\n", cl);
     buf += cl;
-    buf -= cl;
+    len -= cl;
 
     //skip token's TLV (and push it back completely)
     token.buf = buf;
@@ -368,22 +368,24 @@ static int on_bootstrapping_response(ndn_block_t* interest, ndn_block_t* data)
     anchor_global.buf = buf;
     anchor_global.len = len;
    
+    DPRINT("anchor certificate length: %d\n", len);
     //get certificate name - home prefix
     ndn_data_get_name(&anchor_global, &home_prefix);
+    DPRINT("anchor certificate name=");
+    ndn_name_print(&home_prefix);
+    putchar('\n');
 
     //then we need verify anchor's signature
     ndn_block_t AKpub;
     ndn_data_get_content(&anchor_global, &AKpub);
-    memcpy(&anchor_key_pub, AKpub.buf + 4, 64);//skip the content and pubkey TLV header
+    DPRINT("anchor public key TLV block length: %d\n", AKpub.len);
+    memcpy(&anchor_key_pub, AKpub.buf + 2, 64);//skip the content and pubkey TLV header
 
     r = ndn_data_verify_signature(&anchor_global, anchor_key_pub, sizeof(anchor_key_pub));
     if (r != 0)
-        DPRINT("device (pid=%" PRIkernel_pid "): fail to verify sign-on response\n",
-               handle->id);
+        DPRINT("device fail to verify sign-on response\n");
     else{
-        DPRINT("device (pid=%" PRIkernel_pid "): sign-on response valid\n",
-               handle->id);
-    
+        DPRINT("device sign-on response valid\n");
         ndn_app_express_certificate_request(); 
     }
     return NDN_APP_CONTINUE;  // block forever...
@@ -397,8 +399,7 @@ static int ndn_app_express_bootstrapping_request(void)
     const char* uri = "/ndn/sign-on";   
     ndn_shared_block_t* sn = ndn_name_from_uri(uri, strlen(uri));
     if (sn == NULL) {
-        DPRINT("device (pid=%" PRIkernel_pid "): cannot create name from uri "
-               "\"%s\"\n", handle->id, uri);
+        DPRINT("device cannot create name from uri ");
         return NDN_APP_ERROR;
     }   //we creat a name first
 
@@ -409,14 +410,6 @@ static int ndn_app_express_bootstrapping_request(void)
     free((void*)buf_dibs);
     buf_dibs = NULL;
     ndn_shared_block_release(sn);
-    
-    //append the timestamp
-    ndn_shared_block_t* sn2 = ndn_name_append_uint32(&sn1->block, xtimer_now_usec());
-    ndn_shared_block_release(sn1);
-
-    //append the random value
-    ndn_shared_block_t* sn3 = ndn_name_append_uint32(&sn2->block, random_uint32());
-    ndn_shared_block_release(sn2);  
 
     //now we have signinfo but carrying no keylocator
     // Write signature info header 
@@ -430,31 +423,30 @@ static int ndn_app_express_bootstrapping_request(void)
     buf_sinfo[4] = NDN_SIG_TYPE_ECDSA_SHA256;
 
     //append the signatureinfo
-    ndn_shared_block_t* sn4 = ndn_name_append(&sn3->block, buf_sinfo, 5); 
+    ndn_shared_block_t* sn2 = ndn_name_append(&sn1->block, buf_sinfo, 5); 
     free((void*)buf_sinfo);
     buf_sinfo = NULL;
-    ndn_shared_block_release(sn3);
+    ndn_shared_block_release(sn1);
 
     //making and append ECDSA signature by BKpri
     uint8_t* buf_sibs = (uint8_t*)malloc(66); //64 bytes for the value, 2 bytes for header 
-    ndn_make_signature(ecc_key_pri, &sn4->block, buf_sibs);
-    ndn_shared_block_t* sn5 = ndn_name_append(&sn4->block, buf_sibs, 66); 
-    ndn_shared_block_release(sn4);
+    ndn_make_signature(ecc_key_pri, &sn2->block, buf_sibs);
+    ndn_shared_block_t* sn3 = ndn_name_append(&sn2->block, buf_sibs, 66); 
+    ndn_shared_block_release(sn2);
     free((void*)buf_sibs);
     buf_sibs = NULL;
 
-    uint32_t lifetime = 1000;  // 1 sec
 
-    DPRINT("device (pid=%" PRIkernel_pid "): express interest, name=",
-           handle->id);
-    ndn_name_print(&sn4->block);
+    DPRINT("device express interest, name=");
+    ndn_name_print(&sn3->block);
     putchar('\n');
 
     begin = xtimer_now_usec();
-    int r = ndn_app_express_interest(handle, &sn5->block, NULL, lifetime,
+    uint32_t lifetime = 3000;  // 1 sec
+    int r = ndn_app_express_interest(handle, &sn3->block, NULL, lifetime,
                                      on_bootstrapping_response, 
                                      bootstrap_timeout);  
-    ndn_shared_block_release(sn5);
+    ndn_shared_block_release(sn3);
     if (r != 0) {
         DPRINT("device (pid=%" PRIkernel_pid "): failed to express interest\n",
                handle->id);
@@ -481,13 +473,6 @@ static int certificate_timeout(ndn_block_t* interest)
 
 void ndn_bootstrap(void)
 {
-    char c;
-    do {
-        DPRINT("client (pid=%" PRIkernel_pid "): enter 's' to start\n",
-               thread_getpid());
-        c = getchar();
-    }
-    while(c != 's' && c != 'S');
 
     handle = ndn_app_create();
     if (handle == NULL) {
@@ -507,4 +492,5 @@ void ndn_bootstrap(void)
            handle->id);
 
     ndn_app_destroy(handle);
+
 }
