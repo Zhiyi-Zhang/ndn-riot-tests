@@ -91,6 +91,7 @@ static uint32_t begin;
 static ndn_block_t anchor_global;
 static ndn_block_t certificate_global;
 static ndn_block_t home_prefix;
+static ndn_block_t com_cert;
 
 //segment for signature and buffer_signature to write, returning the pointer to the buffer
 //this function will automatically skip the NAME header, so just pass the whole NAME TLV 
@@ -209,28 +210,33 @@ static int ndn_app_express_certificate_request(void)
     buf_di = NULL;
     ndn_shared_block_release(sn1_cert);
 
-    /* make the CKpub */
-    //uECC_Curve curve1 = uECC_secp256r1();
-    //uECC_make_key(com_key_pub, com_key_pri, curve1);
-
     /* append the CKpub */
-    uint8_t* buf_ck = (uint8_t*)malloc(64);  //64 bytes reserved for hash
-    memcpy(buf_ck, &com_key_pub, 64);
-    ndn_shared_block_t* sn3_cert = ndn_name_append(&sn2_cert->block, buf_ck, 64); 
-    free((void*)buf_ck);
-    buf_ck = NULL;
-    ndn_shared_block_release(sn2_cert);
-    
+
     /* apppend the device name */  
-    /*const char* uri1_cert = "/device_1";  //info from the manufacturer
-    ndn_shared_block_t* sn4_cert = ndn_name_from_uri(uri1_cert, strlen(uri1_cert));
+    const char* uri1_cert = "/device_1";  //info from device itself
+    ndn_shared_block_t* sn3_cert = ndn_name_from_uri(uri1_cert, strlen(uri1_cert));
     //move the pointer by 4 bytes: 2 bytes for name header, 2 bytes for component header
-    ndn_shared_block_t* sn5_cert = ndn_name_append(&sn3_cert->block,
-                                   (&sn4_cert->block)->buf + 4, (&sn4_cert->block)->len - 4);
+    ndn_shared_block_t* sn4_cert = ndn_name_append(&home_prefix,
+                                   (&sn3_cert->block)->buf + 4, (&sn3_cert->block)->len - 4);
     ndn_shared_block_release(sn3_cert);
-    ndn_shared_block_release(sn4_cert);*/
-    
-    ndn_shared_block_t* sn5_cert = sn3_cert;
+
+    ndn_block_t keybuffer = {com_key_pub, sizeof(com_key_pub)};
+    ndn_metainfo_t meta = { NDN_CONTENT_TYPE_BLOB, -1 };
+    ndn_shared_block_t* signed_com =
+        ndn_data_create(&sn4_cert->block, &meta, &keybuffer,
+                        NDN_SIG_TYPE_ECDSA_SHA256, NULL,
+                        com_key_pri, sizeof(com_key_pri));
+    if (signed_com == NULL) {
+        DPRINT("Device (pid=%" PRIkernel_pid "): cannot create self signed Communnication Certificate\n",
+               handle->id);
+        ndn_shared_block_release(sn4_cert);
+        return NDN_APP_ERROR;
+    }
+
+    com_cert = signed_com->block;
+
+    ndn_shared_block_t* sn5_cert = ndn_name_append(&sn2_cert->block, signed_com->block.buf, signed_com->block.len); 
+    ndn_shared_block_release(sn2_cert);
  
     /* make the signature of token */
     /* make a block for token */
@@ -286,6 +292,7 @@ static int ndn_app_express_certificate_request(void)
                                      on_certificate_response, 
                                      certificate_timeout); 
     ndn_shared_block_release(sn10_cert);
+    ndn_shared_block_release(sn4_cert);
     if (r != 0) {
         DPRINT("device (pid=%" PRIkernel_pid "): failed to express interest\n",
                handle->id);
