@@ -222,14 +222,16 @@ static int ndn_app_express_certificate_request(void)
     ndn_shared_block_release(sn2_cert);
     
     /* apppend the device name */  
-    const char* uri1_cert = "/device_1";  //info from the manufacturer
+    /*const char* uri1_cert = "/device_1";  //info from the manufacturer
     ndn_shared_block_t* sn4_cert = ndn_name_from_uri(uri1_cert, strlen(uri1_cert));
     //move the pointer by 4 bytes: 2 bytes for name header, 2 bytes for component header
     ndn_shared_block_t* sn5_cert = ndn_name_append(&sn3_cert->block,
                                    (&sn4_cert->block)->buf + 4, (&sn4_cert->block)->len - 4);
     ndn_shared_block_release(sn3_cert);
-    ndn_shared_block_release(sn4_cert);
-
+    ndn_shared_block_release(sn4_cert);*/
+    
+    ndn_shared_block_t* sn5_cert = sn3_cert;
+ 
     /* make the signature of token */
     /* make a block for token */
     uint8_t* buf_tk = (uint8_t*)malloc(66); //64 bytes reserved from the value, 2 bytes for header
