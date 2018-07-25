@@ -1,23 +1,3 @@
-/*
- * Copyright (C) 2016 Wentao Shang
- *
- * This file is subject to the terms and conditions of the GNU Lesser
- * General Public License v2.1. See the file LICENSE in the top level
- * directory for more details.
- */
-
-/**
- * @ingroup     examples
- * @{
- *
- * @file
- * @brief       Minimum NDN consumer
- *
- * @author      Wentao Shang <wentaoshang@gmail.com>
- *
- * @}
- */
-
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdlib.h>
@@ -460,14 +440,14 @@ static int bootstrap_timeout(ndn_block_t* interest)
 {
     (void)interest;
     DPRINT("Bootstrapping Request Timeout\n");
-    ndn_app_express_bootstrapping_request();
+    //ndn_app_express_bootstrapping_request();
     return NDN_APP_CONTINUE; 
 }
 static int certificate_timeout(ndn_block_t* interest)
 {
     (void)interest;
     DPRINT("Certificate Request Timeout\n");
-    ndn_app_express_certificate_request();
+    //ndn_app_express_certificate_request();
     return NDN_APP_CONTINUE; 
 }
 
