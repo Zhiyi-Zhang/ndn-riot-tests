@@ -115,8 +115,10 @@ static int on_certificate_request(ndn_block_t* interest)
     //set the metainfo
     ndn_metainfo_t meta = { NDN_CONTENT_TYPE_BLOB, -1 };
 
+    ndn_block_t tosend = { m_deviceCert.buf, m_deviceCert.len};
+
     ndn_shared_block_t* signed_cert =
-        ndn_data_create(&sdn->block, &meta, &m_deviceCert,
+        ndn_data_create(&sdn->block, &meta, &tosend,
                         NDN_SIG_TYPE_ECDSA_SHA256, NULL,
                         anchor_key_pri, sizeof(anchor_key_pri));
     if (signed_cert == NULL) {
@@ -189,32 +191,32 @@ static int on_bootstrap_request(ndn_block_t* interest)
     */
 
     //token    
-    uint8_t* token = (uint8_t*)malloc(10);
+    uint8_t token[10] = {0};
     token[0] = 129; //whatever
-    token[1] = 8;
+    ndn_block_put_var_number(8, token + 1, 10 - 1);
      
     //BKpub digest
-    uint8_t* buf_di = (uint8_t*)malloc(34);  //34 bytes reserved for hash
+    uint8_t buf_di[34] = {0};  //34 bytes reserved for hash
     sha256(ecc_key_pub, sizeof(ecc_key_pub), buf_di + 2);                          
-    buf_di[0] = NDN_CONTENT_TYPE_BLOB ; /* = 0 */ //???????? 
-    buf_di[1] = 32;
+    buf_di[0] = 130 ; /* = 0 */ //???????? 
+    ndn_block_put_var_number(32, buf_di + 1, 34 - 1);
 
     //prepare the big content
     uint8_t* big_buf = (uint8_t*)malloc(10 + 34 + m_Certificate.len);
     int big_len =  10 + 34 + m_Certificate.len;
 
-    DPRINT("  ----- length of certitiface : %d\n", m_Certificate.len);
+    DPRINT("length of anchor certitiface : %d\n", m_Certificate.len);
     //payload
-    memcpy(big_buf, token, 10);
-    memcpy(big_buf + 10, buf_di, 34);
-    memcpy(big_buf + 10 + 34, m_Certificate.buf, m_Certificate.len);
+    uint8_t* ptr = big_buf;
+    memcpy(ptr, token, 10); ptr += 10;
+    memcpy(ptr, buf_di, 34); ptr += 34;
+    memcpy(ptr, m_Certificate.buf, m_Certificate.len); ptr = NULL;
 
-    ndn_block_t bigbuffer;
-    bigbuffer.buf = big_buf;
-    bigbuffer.len = big_len;
+    ndn_block_t bigbuffer = { big_buf, big_len};
 
-    //free the memeory
-    free(token); free(buf_di);
+
+    DPRINT("bigbuffer length: %d\n", bigbuffer.len);
+    
     //make the packet
     ndn_shared_block_t* big_packet =
         ndn_data_create(&sdn_new->block, &meta, &bigbuffer,
@@ -233,6 +235,7 @@ static int on_bootstrap_request(ndn_block_t* interest)
     putchar('\n');
     ndn_shared_block_release(sdn_new);
 
+    //ndn_shared_block_release(big_packet_test);
     // pass ownership of "sd" to the API
     if (ndn_app_put_data(handle, big_packet) != 0) {
         DPRINT("Controller (pid=%" PRIkernel_pid "): cannot put Bootstrap Response\n",
@@ -241,7 +244,6 @@ static int on_bootstrap_request(ndn_block_t* interest)
     }
 
     free(big_packet);
-
     return NDN_APP_STOP;
 }
 
@@ -281,11 +283,11 @@ void ndn_controller(void)
 
     int r = ndn_data_verify_signature(&m_Certificate, anchor_key_pub, sizeof(anchor_key_pub));
     if (r != 0)
-        DPRINT("device fail to verify sign-on response\n");
+        DPRINT("Controller fail to verify self certificate\n");
     else{
-        DPRINT("device sign-on response valid\n");
-        //ndn_app_express_certificate_request(); 
+        DPRINT("Controller self certificate valid\n");
     }
+    
     //set interest filter /ndn/sign-on
     const char* filter = "/ndn/sign-on";
     ndn_shared_block_t* sp = ndn_name_from_uri(filter, strlen(filter));

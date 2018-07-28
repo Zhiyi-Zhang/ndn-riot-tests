@@ -97,10 +97,13 @@ static ndn_block_t com_cert;
 //this function will automatically skip the NAME header, so just pass the whole NAME TLV 
 static int ndn_make_signature(uint8_t pri_key[32], ndn_block_t* seg, uint8_t* buf_sig)
 {
+    uint32_t num;
     buf_sig[0] = NDN_TLV_SIGNATURE_VALUE;
-    buf_sig[1] = 64;
+    ndn_block_put_var_number(64, buf_sig + 1, 66 -1);
+    int gl = ndn_block_get_var_number(seg->buf + 1, seg->len - 1, &num);
     uint8_t h[32] = {0}; 
-    sha256(seg->buf + 2, seg->len - 2, h);
+
+    sha256(seg->buf + 1 + gl, seg->len - 1 - gl, h);
     uECC_Curve curve = uECC_secp256r1();
 
 #ifndef FEATURE_PERIPH_HWRNG
@@ -126,7 +129,7 @@ static int ndn_make_signature(uint8_t pri_key[32], ndn_block_t* seg, uint8_t* bu
     ctx->uECC.result_size = 32;
     ctx->uECC.tmp = tmp;
     int res = uECC_sign_deterministic(pri_key, h, sizeof(h), &ctx->uECC,
-                                              buf_sig + 2, curve); 
+                                              buf_sig + 1 + gl, curve); 
     free(ctx);
     free(tmp);
     if (res == 0) {
@@ -134,7 +137,7 @@ static int ndn_make_signature(uint8_t pri_key[32], ndn_block_t* seg, uint8_t* bu
         return -1;
     }
 #else
-    res = uECC_sign(pri_key, h, sizeof(h), buf_sig + 2, curve);
+    res = uECC_sign(pri_key, h, sizeof(h), buf_sig + 1 + gl, curve);
     if (res == 0) {
         return -1;
     }  
@@ -185,6 +188,8 @@ static int on_certificate_response(ndn_block_t* interest, ndn_block_t* data)
         certificate_global.buf = buf_cert;
         certificate_global.len = content_cert.len - 2;
    
+        DPRINT("device (pid=%" PRIkernel_pid "): certificate installed, length = %d\n",
+               handle->id, certificate_global.len);
     }
     return NDN_APP_CONTINUE;  // block forever...
 }
@@ -192,7 +197,8 @@ static int on_certificate_response(ndn_block_t* interest, ndn_block_t* data)
 static int ndn_app_express_certificate_request(void) 
 {
   // /[home-prefix]/cert/{digest of BKpub}/{CKpub}/{signature of token}/{signature by BKpri}
-    
+
+
     /* append the "cert" */
     const char* uri_cert = "/cert";  //info from the manufacturer
     ndn_shared_block_t* sn_cert = ndn_name_from_uri(uri_cert, strlen(uri_cert));
@@ -209,8 +215,6 @@ static int ndn_app_express_certificate_request(void)
     free((void*)buf_di);
     buf_di = NULL;
     ndn_shared_block_release(sn1_cert);
-
-    /* append the CKpub */
 
     /* apppend the device name */  
     const char* uri1_cert = "/device_1";  //info from device itself
@@ -287,7 +291,7 @@ static int ndn_app_express_certificate_request(void)
     putchar('\n');
 
     begin = xtimer_now_usec();
-    uint32_t lifetime = 1000;  // 1 sec
+    uint32_t lifetime = 3000;  // 1 sec
     int r = ndn_app_express_interest(handle, &sn10_cert->block, NULL, lifetime,
                                      on_certificate_response, 
                                      certificate_timeout); 
@@ -316,7 +320,6 @@ static int on_bootstrapping_response(ndn_block_t* interest, ndn_block_t* data)
     Signature: AKpri
     */
     (void)interest;
-    DPRINT("In !\n");
     ndn_block_t name;
     int r = ndn_data_get_name(data, &name); 
     assert(r == 0);
@@ -328,10 +331,18 @@ static int on_bootstrapping_response(ndn_block_t* interest, ndn_block_t* data)
     r = ndn_data_get_content(data, &content);
     assert(r == 0);
 
-    const uint8_t* buf = content.buf;  //receive the pointer from the content type
-    int len = content.len; //receive the content length
+    uint32_t len; 
+    //l = ndn_block_get_var_number(data->buf + 1, data->len - 1, &len);
+    //DPRINT("Data L: %u\n", len);
 
-    DPRINT("content TLV length= %d\n", len);
+    //ndn_block_get_var_number(data->buf + 1 + l + 1, data->len - 1 - l - 1, &len);
+    //DPRINT("Name L: %u\n", len);
+    //DPRINT("Name block length from function: %d\n", name.len);
+
+
+    const uint8_t* buf = content.buf;  //receive the pointer from the content type
+    len = content.len; //receive the content length
+    //DPRINT("content TLV length: %u\n", len);
     //skip content type
     buf += 1;
     len -= 1;
@@ -357,7 +368,7 @@ static int on_bootstrapping_response(ndn_block_t* interest, ndn_block_t* data)
     anchor_global.buf = buf;
     anchor_global.len = len;
    
-    DPRINT("anchor certificate length: %d\n", len);
+    DPRINT("anchor certificate length: %ld\n", len);
     //get certificate name - home prefix
     ndn_data_get_name(&anchor_global, &home_prefix);
     DPRINT("anchor certificate name=");
@@ -392,41 +403,38 @@ static int ndn_app_express_bootstrapping_request(void)
         return NDN_APP_ERROR;
     }   //we creat a name first
 
-    //making and append the digest of BKpub
+    //making and append the digest of BKpub      //don't have header
     uint8_t* buf_dibs = (uint8_t*)malloc(32);  
     sha256(ecc_key_pub, sizeof(ecc_key_pub), buf_dibs);                       
     ndn_shared_block_t* sn1 = ndn_name_append(&sn->block, buf_dibs, 32);   
-    free((void*)buf_dibs);
-    buf_dibs = NULL;
+    free(buf_dibs);
     ndn_shared_block_release(sn);
 
     //now we have signinfo but carrying no keylocator
     // Write signature info header 
     uint8_t* buf_sinfo = (uint8_t*)malloc(5); 
     buf_sinfo[0] = NDN_TLV_SIGNATURE_INFO;
-    buf_sinfo[1] = 3;
+    ndn_block_put_var_number(3, buf_sinfo + 1, 5 - 1);
 
     // Write signature type (true signatureinfo content)
     buf_sinfo[2] = NDN_TLV_SIGNATURE_TYPE;
-    buf_sinfo[3] = 1;
+    ndn_block_put_var_number(1, buf_sinfo + 3, 5 - 3);
     buf_sinfo[4] = NDN_SIG_TYPE_ECDSA_SHA256;
 
     //append the signatureinfo
     ndn_shared_block_t* sn2 = ndn_name_append(&sn1->block, buf_sinfo, 5); 
-    free((void*)buf_sinfo);
-    buf_sinfo = NULL;
+    free(buf_sinfo);
     ndn_shared_block_release(sn1);
 
     //making and append ECDSA signature by BKpri
     uint8_t* buf_sibs = (uint8_t*)malloc(66); //64 bytes for the value, 2 bytes for header 
     ndn_make_signature(ecc_key_pri, &sn2->block, buf_sibs);
-    ndn_shared_block_t* sn3 = ndn_name_append(&sn2->block, buf_sibs, 66); 
+    ndn_shared_block_t* sn3 = ndn_name_append(&sn2->block, buf_sibs, 66);  //from what part we sign?
     ndn_shared_block_release(sn2);
-    free((void*)buf_sibs);
-    buf_sibs = NULL;
+    free(buf_sibs);
 
 
-    DPRINT("device express interest, name=");
+    DPRINT("device express bootstrap interest, name=");
     ndn_name_print(&sn3->block);
     putchar('\n');
 
