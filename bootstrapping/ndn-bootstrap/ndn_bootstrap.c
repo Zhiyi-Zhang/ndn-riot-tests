@@ -191,7 +191,7 @@ static int on_certificate_response(ndn_block_t* interest, ndn_block_t* data)
         DPRINT("device (pid=%" PRIkernel_pid "): certificate installed, length = %d\n",
                handle->id, certificate_global.len);
     }
-    return NDN_APP_CONTINUE;  // block forever...
+    return NDN_APP_STOP;  // block forever...
 }
 
 static int ndn_app_express_certificate_request(void) 
@@ -468,14 +468,18 @@ static int certificate_timeout(ndn_block_t* interest)
     return NDN_APP_CONTINUE; 
 }
 
-void ndn_bootstrap(void)
+void *ndn_bootstrap(void *arg)
 {
+    (void)arg;
+
+    msg_t send, reply;
+    
 
     handle = ndn_app_create();
     if (handle == NULL) {
         DPRINT("client (pid=%" PRIkernel_pid "): cannot create app handle\n",
                thread_getpid());
-        return;
+        return NULL;
     }
 
     ndn_app_express_bootstrapping_request();  /* where all bootstrapping start */
@@ -490,4 +494,13 @@ void ndn_bootstrap(void)
 
     ndn_app_destroy(handle);
 
+    DPRINT("into ipc loop\n");
+    while(1){
+    msg_receive(&send);
+    DPRINT("ipc request got\n");
+    reply.content.ptr = &certificate_global;
+    msg_reply(&send, &reply);
+    }
+
+    return NULL;
 }
