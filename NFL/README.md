@@ -1,2 +1,2 @@
-NDN Fowarder Lightweight (NFL) the lightweight version of NFD for resources constrained devices. It runs as a ndn-riot application. When you wanna build a ndn-riot application with NDN advanced features (e.g., bootstrap and self-learning), please run this application as a independent thread in your main function, and use RIOT IPC support to fetch the data you want(e.g., certificate, service list). 
-To Know: this is not a RIOT pkg, but a ndn-riot application
+1. currently we have lots of header file included problems, please fix them
+2. may be we should include the whole ndn-riot pkg into this folder?
