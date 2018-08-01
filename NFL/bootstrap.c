@@ -5,16 +5,17 @@
 #include "random.h"
 #include "xtimer.h"
 #include <hashes/sha256.h>
-#include <ndn-riot/encoding/ndn-constants.h>
-#include <ndn-riot/app.h>
-#include <ndn-riot/ndn.h>
-#include <ndn-riot/encoding/name.h>
-#include <ndn-riot/encoding/interest.h>
-#include <ndn-riot/encoding/data.h>
-#include <ndn-riot/msg-type.h>
+#include <encoding/ndn-constants.h>
+#include <app.h>
+#include <ndn.h>
+#include <encoding/name.h>
+#include <encoding/interest.h>
+#include <encoding/data.h>
+#include <msg-type.h>
 #include <crypto/ciphers.h>
 #include <uECC.h>
 #include <string.h>
+#include <nfl-block.h>
 
 #ifndef FEATURE_PERIPH_HWRNG
 typedef struct uECC_SHA256_HashContext {
@@ -433,9 +434,9 @@ static int certificate_timeout(ndn_block_t* interest)
     return NDN_APP_CONTINUE; 
 }
 
-void *ndn_bootstrap(void *arg)
+static void *ndn_bootstrap(void *ptr)
 {
-    (void)arg;
+    (void)ptr;
 
     msg_t send, reply;
     

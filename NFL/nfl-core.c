@@ -14,9 +14,6 @@
 
 #define ENABLE_DEBUG 1
 #include <debug.h>
-#include <net/gnrc/netapi.h>
-#include <net/gnrc/netif.h>
-#include <net/gnrc/netreg.h>
 #include <thread.h>
 #include <timex.h>
 #include <xtimer.h>
@@ -36,11 +33,11 @@ kernel_pid_t nfl_pid = KERNEL_PID_UNDEF;
 static int nfl_bootstrap_init()
 {
     //these info are static allocated, others all can be deleted after bootstrap
-    bootstrap_cb = //callback here
-    ndn_block_t* m_Certificate;
-    ndn_block_t* m_anchorCert;
-    ndn_block_t* m_homePrefix;
-    ndn_block_t* m_host;
+
+    ndn_block_t* m_Certificate = NULL;
+    ndn_block_t* m_anchorCert = NULL;
+    ndn_block_t* m_homePrefix = NULL;
+    ndn_block_t* m_host = NULL;
     uint8_t BKpub[64];
     uint8_t BKpri[32];
     kernel_pid_t nfl_bootstrap_pid = KERNEL_PID_UNDEF;
@@ -50,7 +47,7 @@ static int nfl_bootstrap_init()
 
 static int nfl_service_discovery_init()
 {
-    
+
 }
 static int _start_bootstrap(void* ptr)
 {
@@ -59,31 +56,29 @@ static int _start_bootstrap(void* ptr)
     //assign value
     msg_t send, reply;
     reply.content.ptr = NULL;
-    BKpub = ptr->BKpub;
-    BKpri = ptr->BKpri;
     nfl_bootstrap_pid = thread_create(bootstrap_stack, sizeof(bootstrap_stack),
-                            THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_STACKTEST, ndn_bootstrap, NULL, "nfl-bootstrap");
+                            THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_STACKTEST, ndn_bootstrap, ptr, "nfl-bootstrap");
     //this thread directly registerd on ndn core thread as a application
     send.content.ptr = reply.content.ptr;
 
     uint32_t seconds = 5;
-    xtimer_sleep(seconds);
-    msg_send_receive(&send, &reply, pid);
+    xtimer_sleep(seconds); //we need some delay to achieve syc comm
+    msg_send_receive(&send, &reply, nfl_bootstrap_pid);
 
-    ndn_block_t* cert;
+    ndn_block_t* cert = NULL;
     ndn_block_t name;
     cert = reply.content.ptr;
     ndn_data_get_name(cert, &name);
     DPRINT("certificate ipc received, name=");
     ndn_name_print(&name);
     putchar('\n');
+    
 }
 
 /* Main event loop for NFL */
 static void *_event_loop(void *args)
 {
     msg_t msg, reply, msg_q[NFL_MSG_QUEUE_SIZE];
-    gnrc_netreg_entry_t me_reg;
 
     (void)args;
     msg_init_queue(msg_q, NFL_MSG_QUEUE_SIZE);
@@ -100,6 +95,9 @@ static void *_event_loop(void *args)
                       PRIkernel_pid "\n", msg.sender_pid);
                 
                 _start_bootstrap(msg.content.ptr);
+                
+                reply.content.ptr = NULL; //just to invoke the nfl caller process
+                msg_reply(&msg, &reply);
 
                 //ndn_pit_timeout((msg_t*)msg.content.ptr);
                 break;
@@ -190,7 +188,7 @@ kernel_pid_t nfl_init(void)
     if (nfl_pid == KERNEL_PID_UNDEF) {
         /* start UDP thread */
         nfl_pid = thread_create(
-            _stack, sizeof(_stack), GNRC_NDN_PRIO,
+            _stack, sizeof(_stack), NFL_PRIO,
             THREAD_CREATE_STACKTEST, _event_loop, NULL, "NFL");
     }
     return nfl_pid;
