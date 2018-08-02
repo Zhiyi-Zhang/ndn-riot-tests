@@ -1,20 +1,16 @@
-#include <stdio.h>
-#include <inttypes.h>
-#include <stdlib.h>
-#include "thread.h"
-#include "random.h"
-#include "xtimer.h"
-#include <hashes/sha256.h>
-#include <encoding/ndn-constants.h>
-#include <app.h>
-#include <ndn.h>
-#include <encoding/name.h>
-#include <encoding/interest.h>
-#include <encoding/data.h>
-#include <msg-type.h>
-#include <crypto/ciphers.h>
-#include <uECC.h>
-#include <string.h>
-#include <nfl-block.h>
+#ifndef NDN_BOOTSTRAP_H_
+#define NDN_BOOTSTRAP_H_
 
-static void *ndn_bootstrap(void *ptr);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void *ndn_bootstrap(void *ptr);
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* NDN_BOOTSTRAP_H_ */
+/** @} */
