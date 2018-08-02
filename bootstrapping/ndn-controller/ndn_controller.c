@@ -41,7 +41,6 @@
 
 
 static ndn_app_t* handle = NULL;
-static ndn_app_t* handle_new = NULL;
 
 
 /*static const uint8_t ecc_key_pri[] = {
@@ -92,12 +91,12 @@ static int on_certificate_request(ndn_block_t* interest)
     ndn_block_t in;
     if (ndn_interest_get_name(interest, &in) != 0) {
         DPRINT("Controller (pid=%" PRIkernel_pid "): cannot get name from Certificate Request"
-               "\n", handle_new->id);
+               "\n", handle->id);
         return NDN_APP_ERROR;
     }
 
     DPRINT("Controller (pid=%" PRIkernel_pid "): Certificate Request received, name=",
-           handle_new->id);
+           handle->id);
     ndn_name_print(&in);
     putchar('\n');
 
@@ -106,7 +105,7 @@ static int on_certificate_request(ndn_block_t* interest)
     ndn_shared_block_t* sdn = ndn_name_append_uint8(&in, 3);
     if (sdn == NULL) {
         DPRINT("Controller (pid=%" PRIkernel_pid "): cannot append Version component to "
-               "name\n", handle_new->id);
+               "name\n", handle->id);
         return NDN_APP_ERROR;
     }
     DPRINT("m_deviceCert length: %d\n", m_deviceCert.len);
@@ -123,13 +122,13 @@ static int on_certificate_request(ndn_block_t* interest)
                         anchor_key_pri, sizeof(anchor_key_pri));
     if (signed_cert == NULL) {
         DPRINT("Controller (pid=%" PRIkernel_pid "): cannot create signed Certificate\n",
-               handle_new->id);
+               handle->id);
         ndn_shared_block_release(sdn);
         return NDN_APP_ERROR;
     }
 
     DPRINT("Controller (pid=%" PRIkernel_pid "): send Ceritificate Response to NDN thread, name=",
-           handle_new->id);
+           handle->id);
     ndn_name_print(&sdn->block);
     putchar('\n');
     ndn_shared_block_release(sdn);
@@ -137,11 +136,10 @@ static int on_certificate_request(ndn_block_t* interest)
     // pass ownership of "sd" to the API
     if (ndn_app_put_data(handle, signed_cert) != 0) {
         DPRINT("Controller (pid=%" PRIkernel_pid "): cannot put Ceritificate Response\n",
-               handle_new->id);
+               handle->id);
         return NDN_APP_ERROR;
     }
 
-    DPRINT("Controller (pid=%" PRIkernel_pid "): return to the app\n", handle_new->id);
     return NDN_APP_CONTINUE;
 }
 
@@ -244,7 +242,9 @@ static int on_bootstrap_request(ndn_block_t* interest)
     }
 
     free(big_packet);
-    return NDN_APP_STOP;
+
+
+    return NDN_APP_CONTINUE;
 }
 
 void ndn_controller(void)
@@ -307,29 +307,6 @@ void ndn_controller(void)
         return;
     }
 
-
-    DPRINT("Controller (pid=%" PRIkernel_pid "): register prefix : ",
-           handle->id);
-    ndn_name_print(&sp->block);
-    putchar('\n');
-    DPRINT("Controller (pid=%" PRIkernel_pid "): enter app run loop\n",
-           handle->id);
-
-    ndn_app_run(handle);
-
-    DPRINT("Controller (pid=%" PRIkernel_pid "): returned from app run loop\n",
-           handle->id);
-    ndn_app_destroy(handle);
-
-
-
-
-    handle_new = ndn_app_create();
-    if (handle_new == NULL) {
-        DPRINT("Controller (pid=%" PRIkernel_pid "): cannot create app handle\n",
-               thread_getpid());
-        return;
-    }
     //set interest filter /home-prefix/cert
     const char* uri_cert = "/cert";  //info from the manufacturer
     ndn_shared_block_t* sn_cert = ndn_name_from_uri(uri_cert, strlen(uri_cert));
@@ -338,24 +315,25 @@ void ndn_controller(void)
                                  (&sn_cert->block)->buf + 4, (&sn_cert->block)->len - 4);
     ndn_shared_block_release(sn_cert);
 
-    if (ndn_app_register_prefix(handle_new, sp1, on_certificate_request) != 0) {
+    if (ndn_app_register_prefix(handle, sp1, on_certificate_request) != 0) {
         DPRINT("Controller (pid=%" PRIkernel_pid "): failed to register prefix\n",
-               handle_new->id);
-        ndn_app_destroy(handle_new);
+               handle->id);
+        ndn_app_destroy(handle);
         return;
     }
 
     DPRINT("Controller (pid=%" PRIkernel_pid "): register prefix : ",
-           handle_new->id);
+           handle->id);
     ndn_name_print(&sp1->block);
     putchar('\n');
-    DPRINT("Controller (pid=%" PRIkernel_pid "): enter app run loop\n",
-           handle_new->id);
 
-    ndn_app_run(handle_new);
+    DPRINT("Controller (pid=%" PRIkernel_pid "): enter app run loop\n",
+           handle->id);
+
+    ndn_app_run(handle);
 
     DPRINT("Controller (pid=%" PRIkernel_pid "): returned from app run loop\n",
-           handle_new->id);
-    ndn_app_destroy(handle_new);
+           handle->id);
+    ndn_app_destroy(handle);
 
 }
