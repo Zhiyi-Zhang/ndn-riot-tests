@@ -565,4 +565,33 @@ void ndn_name_print(ndn_block_t* block)
     }
 }
 
+ndn_shared_block_t* ndn_name_append_from_name(ndn_block_t* block, ndn_block_t* block_new)
+{
+    int new_len = ndn_name_get_size_from_block(block_new);
+    ndn_block_t* blockptr = block;
+    ndn_shared_block_t* ptr = NULL; 
+
+    for(int i = 0; i < new_len; ++i){
+        ndn_block_t buffer;
+        ndn_name_get_component_from_block(block_new, i, &buffer);
+    
+        /* skip name header and component header */
+        ptr = ndn_name_append(blockptr, buffer.buf, buffer.len);
+        blockptr = &ptr->block;
+    }
+
+    return ptr;
+}
+
+int ndn_name_wire_decode(ndn_block_t* buf, ndn_name_t* name){
+    int len = ndn_name_get_size_from_block(buf);
+
+    name->comps = malloc(len * sizeof(ndn_block_t));
+
+    for(int i = 0; i < len; ++i) 
+        ndn_name_get_component_from_block(buf, i, &name->comps[i]);
+
+    return true;
+}
+
 /** @} */
