@@ -1,5 +1,5 @@
 # name of your application
-APPLICATION = ndn_bootstrap
+APPLICATION = ndn_consumer
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native
@@ -21,6 +21,8 @@ USEPKG += micro-ecc
 USEMODULE += shell
 USEMODULE += shell_commands
 USEMODULE += ps
+USEMODULE += crypto
+USEMODULE += cipher_modes
 
 USEPKG += ndn-riot
 
@@ -28,6 +30,8 @@ USEPKG += ndn-riot
 # which is not needed in a production environment but helps in the
 # development process:
 CFLAGS += -DDEVELHELP
+CFLAGS += -DCRYPTO_AES
+CFLAGS += -DCRYPTO_THREEDES
 
 # Change this to 0 show compiler invocation lines by default:
 QUIET ?= 1
