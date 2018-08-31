@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Wentao Shang
+ * Copyright (C) 2018 Tianyuan Yu
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -7,13 +7,13 @@
  */
 
 /**
- * @ingroup     examples
+ * @ingroup     bootstrap
  * @{
  *
  * @file
- * @brief       Minimum NDN producer
+ * @brief       Minimum NDN bootstrap controller
  *
- * @author      Wentao Shang <wentaoshang@gmail.com>
+ * @author      Tianyuan Yu <royu9710@outlook.com>
  *
  * @}
  */
