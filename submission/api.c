@@ -263,6 +263,7 @@ int ndn_interest_verify_signature_with_index(ndn_block_t* block,
     /* read name length */
     l = ndn_block_get_var_number(buf, len, &num);
     if (l < 0) return -1;
+    int name_var = l;
     buf += l; 
     len -= l; 
 
@@ -336,7 +337,7 @@ int ndn_interest_verify_signature_with_index(ndn_block_t* block,
             //hmac_sha256(key, key_len, (const unsigned*)sig_start,
             //            sig_value.buf - sig_start, h);
             hmac_sha256(key, key_len, (const unsigned*)sig_start,
-                        name.len - 2 - 36, h);
+                        name.len - 1 - name_var - 36, h);
             if (memcmp(h, sig_value.buf + 2, sizeof(h)) != 0) {
                 DPRINT("ndn_encoding: fail to verify HMAC_SHA256 signature\n");
                 return -1;
@@ -358,7 +359,7 @@ int ndn_interest_verify_signature_with_index(ndn_block_t* block,
             }
             uint8_t h[32] = {0};
             //sha256(sig_start, sig_value.buf - sig_start, h);
-            sha256(sig_start, name.len - 2 - 68, h);
+            sha256(sig_start, name.len - 1 - name_var - 68, h);
 
             const struct uECC_Curve_t * curves[5];
 

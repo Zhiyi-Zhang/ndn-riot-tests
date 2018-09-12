@@ -86,7 +86,7 @@ static uint8_t com_key_pub[] = {
 
 
 static uint8_t ecc_key_pri[32];
-static uint8_t ecc_key_pub[64]; // this is secp160r1 key
+static uint8_t ecc_key_pub[64]; 
 
 static uint64_t Montgomery(uint64_t n, uint32_t p, uint64_t m)     
 {      
@@ -176,19 +176,20 @@ static int ndn_make_signature_with_index(uint8_t pri_key[32], ndn_block_t* seg, 
     return 0; //success
 }
 
+
 static int ndn_make_hmac_signature(uint8_t* key_ptr, ndn_block_t* seg, uint8_t* buf_sig)
 {
     //when you use this function, please check the length of buf_sig is 34
     uint32_t num;
     buf_sig[0] = NDN_TLV_SIGNATURE_VALUE;
-    ndn_block_put_var_number(32, buf_sig + 1, 34 -1);
+    ndn_block_put_var_number(32, buf_sig + 1, 34 - 1);
     int gl = ndn_block_get_var_number(seg->buf + 1, seg->len - 1, &num);
     hmac_sha256(key_ptr, 8 * 4, (const unsigned*)(seg->buf + 1 + gl), //hard code the shared secret length
                         seg->len - 1 - gl, buf_sig + 2);
 
-
     return 0; //success
 }
+
 
 static int bootstrap_timeout(ndn_block_t* interest);
 
@@ -298,21 +299,22 @@ static int ndn_app_express_certificate_request(void)
     ndn_shared_block_release(sn8_cert);
 
     /* append the signature by shared secret derived HMAC */
-    uint8_t* buf_bk = (uint8_t*)malloc(34); //32 bytes reserved from the value, 2 bytes for header 
-    ndn_make_hmac_signature((uint8_t*)shared, &sn9_cert->block, buf_bk);
-    ndn_shared_block_t* sn10_cert = ndn_name_append(&sn9_cert->block, buf_bk, 34);   
-    free((void*)buf_bk);
-    buf_bk = NULL;
-    ndn_shared_block_release(sn9_cert);
+    sn9_cert = ndn_signed_interest_create_with_index(&sn9_cert->block, NULL,
+                                                NDN_SIG_TYPE_HMAC_SHA256, 3000,
+                                                NULL,
+                                                (uint8_t*)shared,
+                                                8 * 4, seq);
+    ndn_block_t sign;
+    ndn_interest_get_name(&sn9_cert->block, &sign);
 
     uint32_t lifetime = 3000;  // 1 sec
 
     begin = xtimer_now_usec();
 
-    int r = ndn_app_express_interest(handle, &sn10_cert->block, NULL, lifetime,
+    int r = ndn_app_express_interest(handle, &sign, NULL, lifetime,
                                      on_certificate_response, 
                                      certificate_timeout); 
-    ndn_shared_block_release(sn10_cert);
+    ndn_shared_block_release(sn9_cert);
     if (r != 0) {
         DPRINT("nfl-bootstrap: (pid=%" PRIkernel_pid "): failed to express interest\n",
                handle->id);

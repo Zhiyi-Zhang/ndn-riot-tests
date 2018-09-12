@@ -21,14 +21,15 @@
 
 //extern void ndn_test(void);
 extern int ndn_bootstrap(int num, uint8_t* pub, uint8_t* pvt);
+extern int ndn_controller(int num, uint8_t* pub, uint8_t* pvt);
 
 #define DPRINT(...) printf(__VA_ARGS__)
 
 int main(void)
 {
 
-    ndn_bootstrap(0, pub_160r1, pvt_160r1);
-
+    ndn_bootstrap(4, pub_256k1, pvt_256k1);
+    //ndn_controller(4, pub_256k1, pvt_256k1);
 
     return 0;
 }
