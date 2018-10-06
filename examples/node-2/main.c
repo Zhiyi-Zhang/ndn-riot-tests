@@ -12,25 +12,30 @@
 #include "thread.h"
 #include <ndn-riot/encoding/ndn-constants.h>
 #include <ndn-riot/ndn.h>
+#include <ndn-riot/app.h>
 #include <ndn-riot/encoding/name.h>
 #include <ndn-riot/encoding/data.h>
+#include <ndn-riot/encoding/key.h>
 #include <ndn-riot/msg-type.h>
 #include <string.h>
 #include "shell.h"
 #include "xtimer.h"
-#include <ndn-riot/nfl-constant.h>
-#include <ndn-riot/nfl-block.h>
-#include <ndn-riot/nfl-app.h>
+
+
+#include <ndn-riot/helper/helper-app.h>
+#include <ndn-riot/helper/helper-core.h>
+#include <ndn-riot/helper/neighbour-table.h>
+#include <ndn-riot/helper/discovery.h>
 
 
 static const shell_command_t commands[] = {
     { NULL, NULL, NULL }
 };
 
+//kernel_pid_t pid = KERNEL_PID_UNDEF;
+//char _stack[THREAD_STACKSIZE_MAIN];
 
-
-static nfl_key_pair_t key;
-
+static ndn_keypair_t key;
 static uint8_t ecc_key_pri[] = {
     0x00, 0x79, 0xD8, 0x8A, 0x5E, 0x4A, 0xF3, 0x2D,
     0x36, 0x03, 0x89, 0xC7, 0x92, 0x3B, 0x2E, 0x50, 
@@ -54,42 +59,67 @@ static uint8_t ecc_key_pub[] = {
 
 int main(void)
 {
- 
 
     key.pub = ecc_key_pub;
     key.pvt = ecc_key_pri;
 
-    nfl_start_bootstrap(&key);
 
-    xtimer_sleep(2);
+    ndn_helper_init();
+    ndn_helper_bootstrap_start(&key);   
 
-    nfl_init_discovery();
-    xtimer_sleep(1);
-    nfl_set_discovery_prefix("/sensor/macbook-pro");
-    xtimer_sleep(1);
+    ndn_helper_discovery_init();
+    ndn_helper_discovery_register_prefix("/temp/macbookpro/31");
+    ndn_helper_discovery_start();
 
-    nfl_start_discovery();
+    xtimer_sleep(20);
 
+    while(1){
+        ndn_identity_entry_t* entry = ndn_neighbour_table_identity_get(0);
+        if (!entry) {
+            DPRINT("have no identity available nearby\n");
+            xtimer_sleep(20);
+            continue;   
+        }
+        break;
+    }
+    ndn_identity_entry_t* entry = ndn_neighbour_table_identity_get(0);
+    if (!entry) {
+        DPRINT("have no identity available nearby\n");
+    }
+    else{
+        ndn_discovery_t tuple;
+        tuple.identity = &entry->id;
+        tuple.service = &entry->list[0].avail;
 
-    xtimer_sleep(30);
+        ndn_shared_block_t* ptr = ndn_helper_discovery_query(&tuple);
+        if (ptr != NULL) {
+            putchar('\n');
+            DPRINT("query success: length %d\n", ptr->block.len);
+        }
+    }
+    
+//    xtimer_sleep(70);
 
-    printf("extract discovery list\n");
-    nfl_identity_entry_t* table = NULL;
-    table = nfl_extract_discovery_list();
+/*
+    ndn_helper_access_init();
 
-    ndn_name_print(&table[0].id);
-    putchar('\n');
+    if(entry->id.buf != NULL){
+        ndn_access_t access;
+        access.ace = &key;
+        access.opt = &entry->id;
 
-    nfl_discovery_tuple_t tuple;
-    ndn_block_t* res = NULL;
-    tuple.identity = &table[0].id;
-    tuple.service = &table[0].list[0].avail;
+        uint8_t producer_key[32] = {0};
+        uint8_t* ptr = ndn_helper_access_consumer(&access);
+        if(ptr != NULL){
+            memcpy(producer_key, ptr, 32);
+            for(unsigned i=0; i < 32; ++i) {
+                printf("0x%02X ", (unsigned)producer_key[i]);
+            }
+            putchar('\n');
+        }
+    }
 
-    res = nfl_start_discovery_query(&tuple);
-    if(!res) printf("fail\n");
-    else printf("success\n");
-
-
+*/
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(commands, line_buf, SHELL_DEFAULT_BUFSIZE);
     /* should be never reached */
