@@ -11,9 +11,9 @@
  * @{
  *
  * @file
- * @brief       Minimum NDN consumer
+ * @brief       Minimum bootstrap controller
  *
- * @author      Wentao Shang <wentaoshang@gmaiil.com>
+ * @author      Tianyuan Yu
  *
  * @}
  */
