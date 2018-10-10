@@ -5,11 +5,10 @@
  * General Public License v2.1. See the file LICENSE in the top level
  * directory for more details.
  */
-
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdlib.h>
-#include "thread.h"
+#include <string.h>
 #include <ndn-riot/encoding/ndn-constants.h>
 #include <ndn-riot/ndn.h>
 #include <ndn-riot/app.h>
@@ -17,19 +16,15 @@
 #include <ndn-riot/encoding/data.h>
 #include <ndn-riot/encoding/key.h>
 #include <ndn-riot/msg-type.h>
-#include <string.h>
-#include "shell.h"
-#include "xtimer.h"
-
-
 #include <ndn-riot/helper/helper-app.h>
 #include <ndn-riot/helper/helper-core.h>
-
+#include "shell.h"
+#include "xtimer.h"
+#include "thread.h"
 
 static const shell_command_t commands[] = {
     { NULL, NULL, NULL }
 };
-
 
 static ndn_keypair_t key;
 
@@ -51,42 +46,46 @@ static uint8_t ecc_key_pub[] = {
     0x1B, 0xD1, 0xAF, 0x76, 0xDB, 0xAD, 0xB8, 0xCE
 }; // this is secp160r1 key
 
-
 #define DPRINT(...) printf(__VA_ARGS__)
 
 int main(void)
 {
-
     key.pub = ecc_key_pub;
     key.pvt = ecc_key_pri;
 
+    /* initiate the helper */
     ndn_helper_init();
+
+    /* start bootstrap */
     ndn_helper_bootstrap_start(&key);
 
-    xtimer_sleep(2);
-
-/*
+    /* initiate access control thread */
     ndn_helper_access_init();
     ndn_access_t access;
     access.ace = &key;
     access.opt = NULL;
 
+    /* apply for producer encrytion key */
     uint8_t producer_key[32] = {0};
     uint8_t* ptr = ndn_helper_access_producer(&access);
     memcpy(producer_key, ptr, 32);
 
+    /* print it out */
+    DPRINT("encryption key is: ");
     for(unsigned i=0; i < 32; ++i) {
         printf("0x%02X ", (unsigned)producer_key[i]);
     }
     putchar('\n');
-*/
+
+    /* initiate discovery thread, register subprefixes and broadcast 
+     * Notes: samr21-xpro will suffer from insufficient RAM here
+     */
     ndn_helper_discovery_init();
     ndn_helper_discovery_register_prefix("/printer/desk");
     ndn_helper_discovery_register_prefix("/AC/desk");
     ndn_helper_discovery_start();
 
-    xtimer_sleep(1);
-
+    /* allow for command line tools */
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(commands, line_buf, SHELL_DEFAULT_BUFSIZE);
     /* should be never reached */

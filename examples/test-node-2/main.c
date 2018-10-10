@@ -5,11 +5,10 @@
  * General Public License v2.1. See the file LICENSE in the top level
  * directory for more details.
  */
-
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdlib.h>
-#include "thread.h"
+#include <string.h>
 #include <ndn-riot/encoding/ndn-constants.h>
 #include <ndn-riot/ndn.h>
 #include <ndn-riot/app.h>
@@ -17,23 +16,17 @@
 #include <ndn-riot/encoding/data.h>
 #include <ndn-riot/encoding/key.h>
 #include <ndn-riot/msg-type.h>
-#include <string.h>
-#include "shell.h"
-#include "xtimer.h"
-
-
 #include <ndn-riot/helper/helper-app.h>
 #include <ndn-riot/helper/helper-core.h>
 #include <ndn-riot/helper/neighbour-table.h>
 #include <ndn-riot/helper/discovery.h>
-
+#include "shell.h"
+#include "xtimer.h"
+#include "thread.h"
 
 static const shell_command_t commands[] = {
     { NULL, NULL, NULL }
 };
-
-//kernel_pid_t pid = KERNEL_PID_UNDEF;
-//char _stack[THREAD_STACKSIZE_MAIN];
 
 static ndn_keypair_t key;
 static uint8_t ecc_key_pri[] = {
@@ -54,25 +47,28 @@ static uint8_t ecc_key_pub[] = {
     0x1B, 0xD1, 0xAF, 0x76, 0xDB, 0xAD, 0xB8, 0xCE
 }; // this is secp160r1 key
 
-
 #define DPRINT(...) printf(__VA_ARGS__)
 
 int main(void)
 {
-
     key.pub = ecc_key_pub;
     key.pvt = ecc_key_pri;
 
-
+    /* initiate the helper */
     ndn_helper_init();
+
+    /* start bootstrap */
     ndn_helper_bootstrap_start(&key);   
 
+    /* initiate discovery thread and register subprefixes */
     ndn_helper_discovery_init();
     ndn_helper_discovery_register_prefix("/temp/macbookpro/31");
+
+    /* start discovery broadcast */
     ndn_helper_discovery_start();
 
-    xtimer_sleep(20);
 
+    /* check neighbour table every 20 seconds for first incoming identity*/
     while(1){
         ndn_identity_entry_t* entry = ndn_neighbour_table_identity_get(0);
         if (!entry) {
@@ -82,36 +78,48 @@ int main(void)
         }
         break;
     }
+
+    /* fetch the first entry in neighbour table */
     ndn_identity_entry_t* entry = ndn_neighbour_table_identity_get(0);
     if (!entry) {
         DPRINT("have no identity available nearby\n");
     }
     else{
+        /* query the first service name in the first entry */
         ndn_discovery_t tuple;
         tuple.identity = &entry->id;
         tuple.service = &entry->list[0].avail;
 
         ndn_shared_block_t* ptr = ndn_helper_discovery_query(&tuple);
         if (ptr != NULL) {
-            putchar('\n');
-            DPRINT("query success: length %d\n", ptr->block.len);
+            DPRINT("query success: return block length %d\n", ptr->block.len);
+
+            /* other opertaion */
+
+            /* release ptr since shared block create in discovery thread */
+            ndn_shared_block_release(ptr);
         }
     }
     
-//    xtimer_sleep(70);
-
-/*
+    /* initiate access control thread 
+     * Notes: samr21-xpro will suffer from insufficient RAM here
+     */
     ndn_helper_access_init();
 
+    /* using key pair to apply for first incoming identity's access */
     if(entry->id.buf != NULL){
         ndn_access_t access;
         access.ace = &key;
         access.opt = &entry->id;
 
+        /* fetch producer encrytion key */
         uint8_t producer_key[32] = {0};
         uint8_t* ptr = ndn_helper_access_consumer(&access);
         if(ptr != NULL){
             memcpy(producer_key, ptr, 32);
+
+            /* print fetched key */
+            DPRINT("fetched producer encryption key is: ");
             for(unsigned i=0; i < 32; ++i) {
                 printf("0x%02X ", (unsigned)producer_key[i]);
             }
@@ -119,7 +127,7 @@ int main(void)
         }
     }
 
-*/
+    /* allow for command line tools */
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(commands, line_buf, SHELL_DEFAULT_BUFSIZE);
     /* should be never reached */

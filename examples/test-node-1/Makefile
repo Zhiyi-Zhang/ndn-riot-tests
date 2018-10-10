@@ -1,5 +1,5 @@
 # name of your application
-APPLICATION = ndn_node_2
+APPLICATION = test_node_1
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native
@@ -17,7 +17,6 @@ USEMODULE += auto_init_gnrc_netif
 USEMODULE += random
 USEMODULE += xtimer
 USEMODULE += hashes
-USEPKG += micro-ecc
 USEMODULE += shell
 USEMODULE += shell_commands
 USEMODULE += ps
@@ -25,6 +24,7 @@ USEMODULE += crypto
 USEMODULE += cipher_modes
 
 USEPKG += ndn-riot
+USEPKG += micro-ecc
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the
