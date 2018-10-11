@@ -24,6 +24,7 @@
 #include "xtimer.h"
 
 #define DPRINT(...) printf(__VA_ARGS__)
+#define MAX_COUNT 5
 
 static ndn_app_t* handle = NULL;
 
@@ -62,6 +63,14 @@ static ndn_block_t home_prefix;
 /* diffie hellman part */
 static uint64_t dh_p = 10000831; //this should be shared_tsk via out-of-band approach 
 static uint64_t dh_g = 10000769; 
+static uint32_t secrete[4];
+static uint64_t dh_send[4];
+static uint64_t dh_receive[4];
+static uint64_t shared_tsk[4];
+static ndn_block_t dh_token;
+
+/* counter for identity allocation */
+static int counter = 0;
 
 /* montgomery algorithm used to do power & mode operation */
 uint64_t montgomery(uint64_t n, uint32_t p, uint64_t m)     
@@ -102,19 +111,24 @@ static int on_certificate_request(ndn_block_t* interest)
 
     DPRINT("CKpub length: %d\n", comm_key.len);
 
-    //TODO: standarlize certificate allocation
-    char* id[5];
-    id[0] = "/ty_device_0";
-    id[1] = "/ty_device_1";
-    id[2] = "/ty_device_2";
-    id[3] = "/ty_device_3";
-    id[4] = "/ty_device_4";
+    //issue test certificates
+    char* identity[MAX_COUNT];
+    int index = 0;
+    identity[index++] = "/test-identity-0000";
+    identity[index++] = "/test-identity-1111";
+    identity[index++] = "/test-identity-2222";
+    identity[index++] = "/test-identity-3333";
+    identity[index++] = "/test-identity-4444";
+    index = (counter++) % 5;
 
-    int index = random_uint32() % 5;
+    const char* key_info = "/KEY/001/ndncer/002";
+    ndn_shared_block_t* key_info_sp = ndn_name_from_uri(key_info, strlen(key_info));
+    ndn_shared_block_t* identity_sp = ndn_name_from_uri(identity[counter], strlen(identity[counter]));
+    ndn_shared_block_t* cert_name = ndn_name_append_from_name(&home_prefix, &identity_sp->block);
+    cert_name = ndn_name_append_from_name(&cert_name->block, &key_info_sp->block);
 
-
-    ndn_shared_block_t* id_ptr = ndn_name_from_uri(id[index], strlen(id[index]));
-    id_ptr = ndn_name_append_from_name(&home_prefix, &id_ptr->block);
+    ndn_shared_block_release(key_info_sp);
+    ndn_shared_block_release(identity_sp);
 
     /* prepare the anchor certificate private key signed certificate */ 
     ndn_shared_block_t* sdn = ndn_name_append_uint8(&in, 3);
@@ -128,14 +142,14 @@ static int on_certificate_request(ndn_block_t* interest)
     ndn_metainfo_t meta = { NDN_CONTENT_TYPE_BLOB, -1 };
     ndn_block_t tosend = { comm_key.buf, comm_key.len};
 
-    ndn_shared_block_t* signed_cert = ndn_data_create(&id_ptr->block, &meta, &tosend,
+    ndn_shared_block_t* signed_cert = ndn_data_create(&cert_name->block, &meta, &tosend,
                                                       NDN_SIG_TYPE_ECDSA_SHA256, NULL,
                                                       anchor_key_pri, sizeof(anchor_key_pri));
 
     /* prepare return data packet, signed by negotiated TSK */
     signed_cert = ndn_data_create(&sdn->block, &meta, &signed_cert->block,
                                   NDN_SIG_TYPE_HMAC_SHA256, NULL,
-                                  (uint8_t*)shared_tsk, 8 * 4);
+                                  (uint8_t*)shared_tsk, NDN_CRYPTO_SYMM_KEY);
 
     if (signed_cert == NULL) {
         DPRINT("Controller (pid=%" PRIkernel_pid "): cannot create signed Certificate\n",
@@ -149,6 +163,7 @@ static int on_certificate_request(ndn_block_t* interest)
     ndn_name_print(&sdn->block);
     putchar('\n');
     ndn_shared_block_release(sdn);
+    ndn_shared_block_release(signed_cert);
 
     // pass ownership of "signed_cert" to the API
     if (ndn_app_put_data(handle, signed_cert) != 0) {
@@ -180,14 +195,8 @@ static int on_bootstrap_request(ndn_block_t* interest)
     //TODO: retrieve and verify the {digest of BKpub}
 
     /* fetch diffie hellman token from interest */
-    uint32_t secrete[4];
-    uint64_t dh_send[4];
-    uint64_t dh_receive[4];
-    uint64_t shared_tsk[4];
-    ndn_block_t dh_token;
-
-    ndn_name_get_component_from_block(&re, 3, &dh_token); 
-    memcpy(dh_receive, dh_token.buf, 32);
+    ndn_name_get_component_from_block(&in, 3, &dh_token); 
+    memcpy(dh_receive, dh_token.buf, NDN_CRYPTO_TOKEN);
 
     /* generate 32 bits random number as secret */    
     secrete[0]  = random_uint32();
@@ -207,35 +216,33 @@ static int on_bootstrap_request(ndn_block_t* interest)
     dh_send[2] = montgomery(dh_g, secrete[2], dh_p);
     dh_send[3] = montgomery(dh_g, secrete[3], dh_p);  
 
-    //TODO: standarlize token TLV block
-    uint8_t token[34] = {0}; 
-    token[0] = 129;  
-    ndn_block_put_var_number(8, token + 1, 34 - 1);
-    uint8_t* token_ptr = token + 2;
-    memcpy(token_ptr, dh_send, 32);
+    /* TLV encode a token block */
+    uint8_t* token = (uint8_t*)malloc(NDN_CRYPTO_TOKEN + 2); 
+    token[0] = NDN_TLV_BLOB;  
+    ndn_block_put_var_number(NDN_CRYPTO_TOKEN, token + 1, NDN_CRYPTO_TOKEN + 1);
+    memcpy(token + 2, dh_send, NDN_CRYPTO_TOKEN);
      
-    //TODO: standarlize digest TLV block
-    uint8_t hash[34] = {0};
+    /* TLV encode a digest block */
+    uint8_t* hash = (uint8_t*)malloc(NDN_CRYPTO_HASH + 2); 
     sha256(ecc_key_pub, sizeof(ecc_key_pub), hash + 2);                          
-    hash[0] = 130;
-    ndn_block_put_var_number(32, hash + 1, 34 - 1);
+    hash[0] = NDN_TLV_BLOB;
+    ndn_block_put_var_number(NDN_CRYPTO_HASH, hash + 1, NDN_CRYPTO_HASH + 1);
 
     /* prepare the content */
-    uint8_t* buf = (uint8_t*)malloc(34 + 34 + m_certificate.len);
-    int len =  34 + 34 + m_certificate.len;
-
-    DPRINT("length of anchor certitiface : %d\n", m_certificate.len);
+    int len =  NDN_CRYPTO_HASH + 2 + NDN_CRYPTO_TOKEN + 2 + m_certificate.len;
+    uint8_t* buf = (uint8_t*)malloc(len);
  
     uint8_t* ptr = buf;
-    memcpy(ptr, token, 34); ptr += 34;
-    memcpy(ptr, hash, 34); ptr += 34;
+    memcpy(ptr, token, NDN_CRYPTO_TOKEN + 2); 
+    ptr += (NDN_CRYPTO_TOKEN + 2);
+    memcpy(ptr, hash, NDN_CRYPTO_HASH + 2); 
+    ptr += (NDN_CRYPTO_HASH + 2);
     memcpy(ptr, m_certificate.buf, m_certificate.len); 
     ptr = NULL;
 
     ndn_block_t buffer = { buf, len };
-
-
     DPRINT("content length: %d\n", buffer.len);
+    DPRINT("length of anchor certitiface : %d\n", m_certificate.len);
 
     ndn_shared_block_t* sd = ndn_name_append_uint8(&in, 3);
     if (sd == NULL) {
@@ -250,7 +257,7 @@ static int on_bootstrap_request(ndn_block_t* interest)
     //prepare the packet
     ndn_shared_block_t* tosend = ndn_data_create(&sd->block, &meta, &buffer,
                         NDN_SIG_TYPE_HMAC_SHA256, NULL,
-                        (uint8_t*)shared_tsk, 8 * 4);
+                        (uint8_t*)shared_tsk, NDN_CRYPTO_SYMM_KEY);
 
     if (tosend == NULL) {
         DPRINT("Controller (pid=%" PRIkernel_pid "): cannot create anchor signed Certificate\n",
@@ -273,6 +280,8 @@ static int on_bootstrap_request(ndn_block_t* interest)
     }
 
     free(buf);
+    free(token);
+    free(hash);
     return NDN_APP_CONTINUE;
 }
 
@@ -334,16 +343,17 @@ void* ndn_controller(void* ptr)
     ndn_shared_block_t* sn = ndn_name_from_uri(cert, strlen(cert));
     sn = ndn_name_append_from_name(&home_prefix, &sn->block);
 
+    DPRINT("Controller (pid=%" PRIkernel_pid "): register prefix : ",
+           handle->id);
+    ndn_name_print(&sn->block);
+    putchar('\n');
+
     if (ndn_app_register_prefix(handle, sn, on_certificate_request) != 0) {
         DPRINT("Controller (pid=%" PRIkernel_pid "): failed to register prefix\n",
                handle->id);
         ndn_app_destroy(handle);
         return NULL;
     }
-    DPRINT("Controller (pid=%" PRIkernel_pid "): register prefix : ",
-           handle->id);
-    ndn_name_print(&sn->block);
-    putchar('\n');
 
     /* start run controller */
     DPRINT("Controller (pid=%" PRIkernel_pid "): returned from app run loop\n",
