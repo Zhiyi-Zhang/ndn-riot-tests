@@ -55,6 +55,21 @@ int main(void)
     }
     printf("\n");
 
+    // Interest decodes
+    ndn_interest_t check_interest;
+    printf("before function starts\n");
+    int result = ndn_interest_from_block(&check_interest, block_value, block_size);
+    printf("result number: %d\n", result);
+    printf("hop limit: %d\n", interest.hop_limit);
+    printf("name component size: %d\n", check_interest.name->components_size);
+    for (size_t i = 0; i < check_interest.name->components_size; i++) {
+      printf("comp type %u\n", (unsigned int) check_interest.name->components[i].type);
+      for (size_t j = 0; j < check_interest.name->components[i].size; j++) {
+        printf("%d ", check_interest.name->components[i].value[j]);
+      }
+      printf("\n");
+    }
+
     // tests end
 
     // shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);

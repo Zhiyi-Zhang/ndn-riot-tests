@@ -109,6 +109,21 @@ int main(void)
       printf("%d ", name_block_value[i]);
     }
 
+    // name decode
+    ndn_name_t check_name;
+    int result = ndn_name_from_block(&check_name, name_block_value, name_block_size);
+    if (result < 0) {
+      printf("things went wrong. Error Code: %d", result);
+    }
+    printf("\n***name decoding***\n");
+    for (size_t i = 0; i < check_name.components_size; i++) {
+      printf("comp type %u\n", (unsigned int) check_name.components[i].type);
+      for (size_t j = 0; j < check_name.components[i].size; j++) {
+        printf("%d ", check_name.components[i].value[j]);
+      }
+      printf("\n");
+    }
+
     // tests end
 
     // shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
