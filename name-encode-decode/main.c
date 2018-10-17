@@ -37,11 +37,14 @@ int main(void)
 
     // component encoding
     name_component_block_t check_block;
-    name_component_tlv_encode(&component, &check_block);
+    ndn_encoder_t comp_encoder;
+    encoder_init(&comp_encoder, check_block.value, NAME_COMPONENT_BLOCK_SIZE);
+    name_component_tlv_encode(&comp_encoder, &component);
+    check_block.size = comp_encoder.offset;
     printf("\n***component encoding***\n");
-    printf("check block length %u\n", check_block.size);
+    printf("check block length %u\n", comp_encoder.offset);
     printf("check block content\n");
-    for (size_t i = 0; i < check_block.size; i++) {
+    for (size_t i = 0; i < comp_encoder.offset; i++) {
       printf("%d ", check_block.value[i]);
     }
 
@@ -96,15 +99,14 @@ int main(void)
     // name encode
     size_t name_block_size = ndn_name_probe_block_size(&name);
     uint8_t name_block_value[name_block_size];
-    ndn_block_t name_block;
-    name_block.value = name_block_value;
-    name_block.size = name_block_size;
-    ndn_name_tlv_encode(&name, &name_block);
+    ndn_encoder_t name_encoder;
+    encoder_init(&name_encoder, name_block_value, name_block_size);
+    ndn_name_tlv_encode(&name_encoder, &name);
     printf("\n***name encoding***\n");
-    printf("check block length %zu\n", name_block.size);
+    printf("check block length %u\n", name_encoder.offset);
     printf("check block content\n");
-    for (size_t i = 0; i < name_block.size; i++) {
-      printf("%d ", name_block.value[i]);
+    for (size_t i = 0; i < name_encoder.offset; i++) {
+      printf("%d ", name_block_value[i]);
     }
 
     // tests end
