@@ -38,29 +38,35 @@ int main(void)
 
     // metainfo test
     putchar('\n');
-    printf("***metainfo check***\n");
     ndn_metainfo_t meta;
-    ndn_metainfo_init(&meta, -1, -1, &component);  
-    size_t estimate = ndn_metainfo_probe_block_size(&meta);
+    ndn_metainfo_init(&meta);
+    ndn_metainfo_set_final_block_id(&meta, &component);
 
     // metainfo encode
-    uint8_t buffer[estimate];
-    ndn_block_t wire_encode = { buffer, estimate };
-    ndn_metainfo_tlv_encode(&meta, &wire_encode);
-    printf("check wire_encode size %zu\n", wire_encode.size);
+    size_t block_size = ndn_metainfo_probe_block_size(&meta);
+    uint8_t block_value[block_size];
+    ndn_encoder_t encoder;
+    encoder_init(&encoder, block_value, block_size);
+    ndn_metainfo_tlv_encode(&encoder, &meta);
+    printf("***metainfo encode***\n");
+    printf("check block size %d\n", (int) block_size);
+    printf("check wire_encode content\n");
+    for (size_t i = 0; i < block_size; i++) {
+      printf("%d ", block_value[i]);
+    }
+    printf("\n***metainfo decode***\n");
 
     // metainfo decode
     ndn_metainfo_t meta_decode;
-    ndn_metainfo_tlv_decode(&meta_decode, &wire_encode);
-    estimate = ndn_metainfo_probe_block_size(&meta_decode);
-    printf("check meta_code esti size %zu\n", estimate);
-
-    if( meta_decode.content_type == -1 ) printf("content_type correct\n");
-    if( meta_decode.freshness == -1 ) printf("freshness correct\n");
-
+    printf("create a new metainfo \n");
+    ndn_metainfo_from_tlv_block(&meta_decode, block_value, block_size);
+    if (meta_decode.enable_ContentType == 0)
+      printf("content_type correct\n");
+    if (meta_decode.enable_FreshnessPeriod == 0)
+      printf("freshness correct\n");
     printf("check finalblock_id content\n");
-    for (size_t i = 0; i < meta_decode.finalblock_id.size; i++) {
-      printf("%d ", meta_decode.finalblock_id.value[i]);
+    for (size_t i = 0; i < meta_decode.final_block_id.size; i++) {
+      printf("%d ", meta_decode.final_block_id.value[i]);
     }
 
     //shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
