@@ -57,27 +57,27 @@ int main(void)
     ndn_ecdsa_set_private_key(&ecdsa, &pvt);
     ndn_ecdsa_set_type(&ecdsa, NDN_ECDSA_CURVE_SECP160R1);
 
-    int r = ndn_security_ecdsa_sign_value(&input, &ecdsa, &signature_ecdsa); 
+    int r = ndn_security_ecdsa_sign_block(&input, &ecdsa, &signature_ecdsa);
     if(r == 0) printf("ECDSA signing success\n");
 
-    r = ndn_security_ecdsa_verify_value(&input, &ecdsa, &signature_ecdsa); 
+    r = ndn_security_ecdsa_verify_block(&input, &ecdsa, &signature_ecdsa);
     if(r == 0) printf("ECDSA verification success\n");
 
     ndn_buffer_t key = { private, 32 };
     ndn_buffer_t signature_hmac = { signature, 32 };
     ndn_hmac_t hmac;
     ndn_hmac_set_key(&hmac, &key);
-    r = ndn_security_hmac_sign_value(&input, &hmac, &signature_hmac);
+    r = ndn_security_hmac_sign_block(&input, &hmac, &signature_hmac);
     if(r == 0) printf("HMAC signing success\n");
 
-    r = ndn_security_hmac_verify_value(&input, &hmac, &signature_hmac);
+    r = ndn_security_hmac_verify_block(&input, &hmac, &signature_hmac);
     if(r == 0) printf("HMAC verification success\n");
 
 
-    r = ndn_security_digest_sign_value(&input, &signature_hmac);
+    r = ndn_security_digest_sign_block(&input, &signature_hmac);
     if(r == 0) printf("DIGEST signing success\n");
 
-    r = ndn_security_digest_verify_value(&input, &signature_hmac);
+    r = ndn_security_digest_verify_block(&input, &signature_hmac);
     if(r == 0) printf("DIGEST verification success\n");
 
     // tests end
