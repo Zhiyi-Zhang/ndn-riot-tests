@@ -28,6 +28,7 @@ int main(void)
     char name_string[] = "/aaa/bbb/ccc/ddd";
     ndn_name_t name;
     ndn_name_from_string(&name, name_string, sizeof(name_string));
+    printf("***init a name*** \n");
     for (size_t i = 0; i < name.components_size; i++) {
       printf("comp type %u\n", (unsigned int) name.components[i].type);
       for (size_t j = 0; j < name.components[i].size; j++) {
@@ -42,13 +43,15 @@ int main(void)
     ndn_interest_set_HopLimit(&interest, 1);
     ndn_interest_set_MustBeFresh(&interest, 1);
     ndn_interest_set_CanBePrefix(&interest, 1);
+    printf("***init an Interest*** \n");
     printf("hop limit: %d\n", interest.hop_limit);
 
     // Interest encodes
     uint32_t block_size = ndn_interest_probe_block_size(&interest);
     uint8_t block_value[block_size];
     ndn_interest_encode(&interest, block_value, block_size);
-    printf("block size: %u\n", block_size);
+    printf("***Interest Encodes*** \n");
+    printf("block size: %d\n", (int) block_size);
     printf("block content: \n");
     for (size_t i = 0; i < block_size; i++) {
       printf("%d ", block_value[i]);
@@ -59,13 +62,14 @@ int main(void)
     ndn_interest_t check_interest;
     printf("before function starts\n");
     int result = ndn_interest_from_block(&check_interest, block_value, block_size);
+    printf("***Interest Decodes*** \n");
     printf("result number: %d\n", result);
     printf("hop limit: %d\n", interest.hop_limit);
-    printf("name component size: %d\n", check_interest.name->components_size);
-    for (size_t i = 0; i < check_interest.name->components_size; i++) {
-      printf("comp type %u\n", (unsigned int) check_interest.name->components[i].type);
-      for (size_t j = 0; j < check_interest.name->components[i].size; j++) {
-        printf("%d ", check_interest.name->components[i].value[j]);
+    printf("name component size: %d\n", (int) check_interest.name.components_size);
+    for (size_t i = 0; i < check_interest.name.components_size; i++) {
+      printf("comp type %u\n", (unsigned int) check_interest.name.components[i].type);
+      for (size_t j = 0; j < check_interest.name.components[i].size; j++) {
+        printf("%d ", check_interest.name.components[i].value[j]);
       }
       printf("\n");
     }
