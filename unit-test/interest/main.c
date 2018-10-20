@@ -49,8 +49,9 @@ int main(void)
   // Interest encodes
   uint32_t block_size = ndn_interest_probe_block_size(&interest);
   uint8_t block_value[block_size];
-  uint32_t block_used_size = 0;
-  ndn_interest_tlv_encode(&interest, block_value, block_size, &block_used_size);
+  ndn_encoder_t encoder;
+  encoder_init(&encoder, block_value, block_size);
+  ndn_interest_tlv_encode(&encoder, &interest);
   printf("***Interest Encodes*** \n");
   printf("block size: %d\n", (int) block_size);
   printf("block content: \n");
