@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Tianyuan Yu
+ * Copyright (C) 2018 Tianyuan Yu, Zhiyi Zhang
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -62,17 +62,21 @@ int main(void)
 
     ndn_signer_init(&signer, data, sizeof(data), signature, sizeof(signature));
     result = ndn_signer_ecdsa_sign(&signer, private, 32, NDN_ECDSA_CURVE_SECP160R1);
-    if(result == 0) printf("ecdsa signing succeeded\n");
+    if(result == 0)
+      printf("ecdsa signing succeeded\n");
     ndn_verifier_init(&verifier, data, sizeof(data), signature, signer.output_used_size);
     result = ndn_verifier_ecdsa_verify(&verifier, public, 64, NDN_ECDSA_CURVE_SECP160R1);
-    if(result == 0) printf("ecdsa verification succeeded\n");
+    if(result == 0)
+      printf("ecdsa verification succeeded\n");
 
     ndn_signer_init(&signer, data, sizeof(data), signature, sizeof(signature));
     result = ndn_signer_hmac_sign(&signer, private, 32);
-    if(result == 0) printf("hmac signing succeeded\n");
+    if(result == 0)
+      printf("hmac signing succeeded\n");
     ndn_verifier_init(&verifier, data, sizeof(data), signature, signer.output_used_size);
     result = ndn_verifier_hmac_verify(&verifier, private, 32);
-    if(result == 0) printf("hmac verification succeeded\n");
+    if(result == 0)
+      printf("hmac verification succeeded\n");
 
     // tests end
 
