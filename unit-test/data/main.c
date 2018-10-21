@@ -19,16 +19,16 @@ static uint8_t private[] = {
     0x42, 0x9D, 0xC8, 0xCE, 0xF0, 0xDE, 0x75, 0xB3
 };
 
-// static uint8_t public[] = {
-//     0xB2, 0xFC, 0x62, 0x14, 0x78, 0xDC, 0x10, 0xEA,
-//     0x61, 0x42, 0xB9, 0x34, 0x67, 0xE6, 0xDD, 0xE3,
-//     0x3D, 0x35, 0xAA, 0x5B, 0xA4, 0x24, 0x6C, 0xD4,
-//     0xB4, 0xED, 0xD8, 0xA4, 0x59, 0xA7, 0x32, 0x12,
-//     0x57, 0x37, 0x90, 0x5D, 0xED, 0x37, 0xC8, 0xE8,
-//     0x6A, 0x81, 0xE5, 0x8F, 0xBE, 0x6B, 0xD3, 0x27,
-//     0x20, 0xBB, 0x16, 0x2A, 0xD3, 0x2F, 0xB5, 0x11,
-//     0x1B, 0xD1, 0xAF, 0x76, 0xDB, 0xAD, 0xB8, 0xCE
-// }; // this is secp160r1 key*/
+static uint8_t public[] = {
+    0xB2, 0xFC, 0x62, 0x14, 0x78, 0xDC, 0x10, 0xEA,
+    0x61, 0x42, 0xB9, 0x34, 0x67, 0xE6, 0xDD, 0xE3,
+    0x3D, 0x35, 0xAA, 0x5B, 0xA4, 0x24, 0x6C, 0xD4,
+    0xB4, 0xED, 0xD8, 0xA4, 0x59, 0xA7, 0x32, 0x12,
+    0x57, 0x37, 0x90, 0x5D, 0xED, 0x37, 0xC8, 0xE8,
+    0x6A, 0x81, 0xE5, 0x8F, 0xBE, 0x6B, 0xD3, 0x27,
+    0x20, 0xBB, 0x16, 0x2A, 0xD3, 0x2F, 0xB5, 0x11,
+    0x1B, 0xD1, 0xAF, 0x76, 0xDB, 0xAD, 0xB8, 0xCE
+}; // this is secp160r1 key*/
 
 // static const shell_command_t shell_commands[] = {
 //     { NULL, NULL, NULL }
@@ -80,6 +80,21 @@ int main(void)
     }
     printf("\n");
 
+    ndn_data_t data_check;
+    int result = ndn_data_tlv_decode_no_verify(&data_check, block_value, encoder.offset);
+    if (result == 0) {
+      printf("data encoding and digest sig verification succeeded");
+    }
+    else
+      printf("result: %d\n", result);
+
+    result = ndn_data_tlv_decode_digest_verify(&data_check, block_value, encoder.offset);
+    if (result == 0) {
+      printf("data encoding and digest sig verification succeeded");
+    }
+    else
+      printf("result: %d\n", result);
+
     // encoding ecdsa
     ndn_ecc_prv_t prv_key;
     ndn_ecc_prv_init(&prv_key, private, sizeof(private), NDN_ECDSA_CURVE_SECP160R1, 1234);
@@ -87,7 +102,7 @@ int main(void)
     char id_string[] = "/smarthome/zhiyi";
     ndn_name_t identity;
     ndn_name_from_string(&identity, id_string, sizeof(id_string));
-    printf("***init identity name*** \n");
+    printf("\n***init identity name*** \n");
     for (size_t i = 0; i < identity.components_size; i++) {
       printf("comp type %u\n", (unsigned int) identity.components[i].type);
       for (size_t j = 0; j < identity.components[i].size; j++) {
@@ -106,6 +121,15 @@ int main(void)
     }
     printf("\n");
 
+    ndn_ecc_pub_t pub_key;
+    ndn_ecc_pub_init(&pub_key, public, sizeof(public), NDN_ECDSA_CURVE_SECP160R1, 1234);
+    result = ndn_data_tlv_decode_ecdsa_verify(&data_check, block_value, encoder.offset, &pub_key);
+    if (result == 0) {
+      printf("data encoding and ecdsa sig verification succeeded");
+    }
+    else
+      printf("result: %d\n", result);
+
     // encoding hmac
     ndn_hmac_key_t hmac_key;
     ndn_hmac_key_init(&hmac_key, private, sizeof(private), 5678);
@@ -119,6 +143,13 @@ int main(void)
       printf("%d ", block_value[i]);
     }
     printf("\n");
+
+    result = ndn_data_tlv_decode_hmac_verify(&data_check, block_value, encoder.offset, &hmac_key);
+    if (result == 0) {
+      printf("data encoding and hmac sig verification succeeded");
+    }
+    else
+      printf("result: %d\n", result);
 
 
     // shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
