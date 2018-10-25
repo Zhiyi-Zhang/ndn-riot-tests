@@ -285,18 +285,18 @@ static int on_bootstrap_request(ndn_block_t* interest)
     return NDN_APP_CONTINUE;
 }
 
-void* ndn_controller(void* ptr)
-
+int ndn_controller(int argc, char **argv)
 {   
-    (void)ptr;
-
+    argc = argc;
+    (void)argv;
+    
     DPRINT("Controller (pid=%" PRIkernel_pid "): start\n", thread_getpid());
 
     handle = ndn_app_create();
     if (handle == NULL) {
         DPRINT("Controller (pid=%" PRIkernel_pid "): cannot create app handle\n",
                thread_getpid());
-        return NULL;
+        return -1;
     }
 
     //set the home prefix
@@ -325,7 +325,7 @@ void* ndn_controller(void* ptr)
     if (sp == NULL) {
         DPRINT("Controller (pid=%" PRIkernel_pid "): cannot create name from uri "
                "\"%s\"\n", handle->id, filter);
-        return NULL;
+        return -1;
     }
     DPRINT("Controller (pid=%" PRIkernel_pid "): register prefix \"%s\"\n",
            handle->id, filter);
@@ -335,7 +335,7 @@ void* ndn_controller(void* ptr)
         DPRINT("Controller (pid=%" PRIkernel_pid "): failed to register prefix\n",
                handle->id);
         ndn_app_destroy(handle);
-        return NULL;
+        return -1;
     }
 
     //set interest filter /{home-prefix}/cert
@@ -352,7 +352,7 @@ void* ndn_controller(void* ptr)
         DPRINT("Controller (pid=%" PRIkernel_pid "): failed to register prefix\n",
                handle->id);
         ndn_app_destroy(handle);
-        return NULL;
+        return -1;
     }
 
     /* start run controller */
@@ -362,5 +362,5 @@ void* ndn_controller(void* ptr)
 
     ndn_app_destroy(handle);
 
-    return NULL;
+    return -1;
 }

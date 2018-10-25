@@ -49,25 +49,60 @@ static uint8_t ecc_key_pub[] = {
 
 #define DPRINT(...) printf(__VA_ARGS__)
 
-int main(void)
+int test_bootstrap(int argc, char **argv)
 {
-    key.pub = ecc_key_pub;
-    key.pvt = ecc_key_pri;
+    argc = argc;
+    (void)argv;
+    ndn_helper_bootstrap_start(&key);
 
-    /* initiate the helper */
-    ndn_helper_init();
+    return 0;
+}
 
-    /* start bootstrap */
-    ndn_helper_bootstrap_start(&key);   
+int test_access(int argc, char **argv)
+{
+    argc = argc;
+    (void)argv;
 
-    /* initiate discovery thread and register subprefixes */
+    /* initiate access control thread 
+     * Notes: samr21-xpro will suffer from insufficient RAM here
+     */
+    ndn_helper_access_init();
+
+    /* using key pair to apply for first incoming identity's access */
+    if(entry->id.buf != NULL){
+        ndn_access_t access;
+        access.ace = &key;
+        access.opt = &entry->id;
+
+        /* fetch producer encrytion key */
+        uint8_t producer_key[32] = {0};
+        uint8_t* ptr = ndn_helper_access_consumer(&access);
+        if(ptr != NULL){
+            memcpy(producer_key, ptr, 32);
+
+            /* print fetched key */
+            DPRINT("fetched producer encryption key is: ");
+            for(unsigned i=0; i < 32; ++i) {
+                printf("0x%02X ", (unsigned)producer_key[i]);
+            }
+            putchar('\n');
+        }
+    }
+
+    return 0;
+}
+
+int test_discovery(int argc, char **argv)
+{
+    argc = argc;
+    (void)argv;
+    
     ndn_helper_discovery_init();
     ndn_helper_discovery_register_prefix("/temp/macbookpro/31");
 
     /* start discovery broadcast */
     ndn_helper_discovery_start();
-
-
+    
     /* check neighbour table every 20 seconds for first incoming identity*/
     while(1){
         ndn_identity_entry_t* entry = ndn_neighbour_table_identity_get(0);
@@ -100,32 +135,24 @@ int main(void)
             ndn_shared_block_release(ptr);
         }
     }
-    
-    /* initiate access control thread 
-     * Notes: samr21-xpro will suffer from insufficient RAM here
-     */
-    ndn_helper_access_init();
 
-    /* using key pair to apply for first incoming identity's access */
-    if(entry->id.buf != NULL){
-        ndn_access_t access;
-        access.ace = &key;
-        access.opt = &entry->id;
+    return 0;
+}
 
-        /* fetch producer encrytion key */
-        uint8_t producer_key[32] = {0};
-        uint8_t* ptr = ndn_helper_access_consumer(&access);
-        if(ptr != NULL){
-            memcpy(producer_key, ptr, 32);
+static const shell_command_t shell_commands[] = {
+    { "node-bootstrap", "start node bootstrapping", test_bootstrap },
+    { "node-access", "start node access control", test_access },
+    { "node-discovery", "start node neighbour discovery", test_discovery },
+    { NULL, NULL, NULL }
+};
 
-            /* print fetched key */
-            DPRINT("fetched producer encryption key is: ");
-            for(unsigned i=0; i < 32; ++i) {
-                printf("0x%02X ", (unsigned)producer_key[i]);
-            }
-            putchar('\n');
-        }
-    }
+int main(void)
+{
+    key.pub = ecc_key_pub;
+    key.pvt = ecc_key_pri;
+
+    /* initiate the helper */
+    ndn_helper_init();
 
     /* allow for command line tools */
     char line_buf[SHELL_DEFAULT_BUFSIZE];

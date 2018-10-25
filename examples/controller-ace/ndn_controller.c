@@ -466,15 +466,18 @@ static int on_interest(ndn_block_t* interest)
     return NDN_APP_CONTINUE;
 }
 
-void ndn_controller_ace(void)
+int ndn_controller(int argc, char **argv)
 {
+    argc = argc;
+    (void)argv;
+
     DPRINT("controller-ace (pid=%" PRIkernel_pid "): start\n", thread_getpid());
 
     handle = ndn_app_create();
     if (handle == NULL) {
         DPRINT("controller-ace (pid=%" PRIkernel_pid "): cannot create app handle\n",
                thread_getpid());
-        return;
+        return -1;
     }
 
     /* install home prefix */
@@ -494,7 +497,7 @@ void ndn_controller_ace(void)
         DPRINT("controller-ace (pid=%" PRIkernel_pid "): failed to register service prefix\n",
                handle->id);
         ndn_app_destroy(handle);
-        return;
+        return -1;
     }
 
     DPRINT("controller-ace pid=%" PRIkernel_pid "): enter app run loop\n",
@@ -503,4 +506,6 @@ void ndn_controller_ace(void)
     ndn_app_run(handle);
 
     ndn_app_destroy(handle);
+
+    return 0;
 }

@@ -22,10 +22,6 @@
 #include "xtimer.h"
 #include "thread.h"
 
-static const shell_command_t commands[] = {
-    { NULL, NULL, NULL }
-};
-
 static ndn_keypair_t key;
 
 static uint8_t ecc_key_pri[] = {
@@ -48,16 +44,19 @@ static uint8_t ecc_key_pub[] = {
 
 #define DPRINT(...) printf(__VA_ARGS__)
 
-int main(void)
+int test_bootstrap(int argc, char **argv)
 {
-    key.pub = ecc_key_pub;
-    key.pvt = ecc_key_pri;
-
-    /* initiate the helper */
-    ndn_helper_init();
-
-    /* start bootstrap */
+    argc = argc;
+    (void)argv;
     ndn_helper_bootstrap_start(&key);
+
+    return 0;
+}
+
+int test_access(int argc, char **argv)
+{
+    argc = argc;
+    (void)argv;
 
     /* initiate access control thread */
     ndn_helper_access_init();
@@ -77,6 +76,14 @@ int main(void)
     }
     putchar('\n');
 
+    return 0;
+}
+
+int test_discovery(int argc, char **argv)
+{
+    argc = argc;
+    (void)argv;
+    
     /* initiate discovery thread, register subprefixes and broadcast 
      * Notes: samr21-xpro will suffer from insufficient RAM here
      */
@@ -85,9 +92,27 @@ int main(void)
     ndn_helper_discovery_register_prefix("/AC/desk");
     ndn_helper_discovery_start();
 
+    return 0;
+}
+
+static const shell_command_t shell_commands[] = {
+    { "node-bootstrap", "start node bootstrapping", test_bootstrap },
+    { "node-access", "start node access control", test_access },
+    { "node-discovery", "start node neighbour discovery", test_discovery },
+    { NULL, NULL, NULL }
+};
+
+int main(void)
+{
+    key.pub = ecc_key_pub;
+    key.pvt = ecc_key_pri;
+
+    /* initiate the helper */
+    ndn_helper_init();
+
     /* allow for command line tools */
     char line_buf[SHELL_DEFAULT_BUFSIZE];
-    shell_run(commands, line_buf, SHELL_DEFAULT_BUFSIZE);
+    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
     /* should be never reached */
     return 0;
 }

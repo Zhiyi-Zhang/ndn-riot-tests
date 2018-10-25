@@ -19,19 +19,27 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <thread.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
-extern void* ndn_controller(void*);
+#include "shell.h"
+#include "msg.h"
 
-kernel_pid_t pid = KERNEL_PID_UNDEF;
+
+extern int ndn_controller(int argc, char **argv);
+
+static const shell_command_t shell_commands[] = {
+    { "control-bootstrap", "start ndn bootstrap controller", ndn_controller },
+    { NULL, NULL, NULL }
+};
 
 int main(void)
 {
-	char* stack = (char*)malloc(THREAD_STACKSIZE_DEFAULT );
-    pid = thread_create(stack, THREAD_STACKSIZE_DEFAULT,
-                            THREAD_PRIORITY_MAIN - 1, THREAD_CREATE_STACKTEST, ndn_controller, NULL, "controller");
-    free(stack);
+    /* start shell */
+    puts("All up, running the shell now");
+    char line_buf[SHELL_DEFAULT_BUFSIZE];
+    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 
     /* should be never reached */
     return 0;
