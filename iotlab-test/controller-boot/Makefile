@@ -1,5 +1,5 @@
 # name of your application
-APPLICATION = ndn_bootstrap_controller
+APPLICATION = bootstrap
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native

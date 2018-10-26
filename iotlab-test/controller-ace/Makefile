@@ -1,5 +1,5 @@
 # name of your application
-APPLICATION = ndn_access_controller
+APPLICATION = access
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native
