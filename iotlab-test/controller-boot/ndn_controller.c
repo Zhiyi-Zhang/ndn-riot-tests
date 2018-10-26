@@ -123,7 +123,7 @@ static int on_certificate_request(ndn_block_t* interest)
 
     const char* key_info = "/KEY/001/ndncer/002";
     ndn_shared_block_t* key_info_sp = ndn_name_from_uri(key_info, strlen(key_info));
-    ndn_shared_block_t* identity_sp = ndn_name_from_uri(identity[counter], strlen(identity[counter]));
+    ndn_shared_block_t* identity_sp = ndn_name_from_uri(identity[index], strlen(identity[index]));
     ndn_shared_block_t* cert_name = ndn_name_append_from_name(&home_prefix, &identity_sp->block);
     cert_name = ndn_name_append_from_name(&cert_name->block, &key_info_sp->block);
 
@@ -163,7 +163,6 @@ static int on_certificate_request(ndn_block_t* interest)
     ndn_name_print(&sdn->block);
     putchar('\n');
     ndn_shared_block_release(sdn);
-    ndn_shared_block_release(signed_cert);
 
     // pass ownership of "signed_cert" to the API
     if (ndn_app_put_data(handle, signed_cert) != 0) {
