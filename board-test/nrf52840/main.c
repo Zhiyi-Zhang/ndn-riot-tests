@@ -3,9 +3,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "nrf_802154.h"
 #include "shell.h"
 #include "msg.h"
+#include "nrf52840-driver/src/nrf_802154.h"
 
 static const shell_command_t shell_commands[] = {
     { NULL, NULL, NULL }
