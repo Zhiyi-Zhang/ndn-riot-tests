@@ -1,5 +1,5 @@
 # name of your application
-APPLICATION = ndn_ping
+APPLICATION = nrf52840_transmitter
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native
@@ -13,7 +13,8 @@ BOARD_INSUFFICIENT_MEMORY := airfy-beacon chronos msb-430 msb-430h nrf51dongle \
                           yunjia-nrf51822 z1
 
 # Include packages that pull up and auto-init the link layer.
-USEPKG += nrf52840-driver
+USEPKG += NRF_802154_driver
+USEMODULE += xtimer
 USEMODULE += shell
 USEMODULE += shell_commands
 

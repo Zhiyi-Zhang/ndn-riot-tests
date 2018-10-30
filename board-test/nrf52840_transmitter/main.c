@@ -2,10 +2,11 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+// #include "xtimer.h"
 
 #include "shell.h"
 #include "msg.h"
-#include "nrf52840-driver/src/nrf_802154.h"
+#include "NRF_802154_driver/src/nrf_802154.h"
 
 static const shell_command_t shell_commands[] = {
     { NULL, NULL, NULL }
@@ -58,23 +59,21 @@ int main(int argc, char *argv[])
     char line_buf[SHELL_DEFAULT_BUFSIZE];
     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 
-    /* should be never reached */
-    return 0;
-
     return 0;
 }
 
-// void nrf_802154_transmitted(const uint8_t * p_frame, uint8_t * p_ack, uint8_t length, int8_t power, int8_t lqi)
-// {
-//     (void) p_frame;
-//     (void) length;
-//     (void) power;
-//     (void) lqi;
+void nrf_802154_transmitted(const uint8_t * p_frame, uint8_t * p_ack,
+                            uint8_t length, int8_t power, uint8_t lqi)
+{
+    (void) p_frame;
+    (void) length;
+    (void) power;
+    (void) lqi;
 
-//     m_tx_done = true;
+    m_tx_done = true;
 
-//     if (p_ack != NULL)
-//     {
-//         nrf_802154_buffer_free(p_ack);
-//     }
-// }
+    if (p_ack != NULL)
+    {
+        nrf_802154_buffer_free(p_ack);
+    }
+}
