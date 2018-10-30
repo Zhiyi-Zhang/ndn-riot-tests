@@ -13,19 +13,17 @@ BOARD_INSUFFICIENT_MEMORY := airfy-beacon chronos msb-430 msb-430h nrf51dongle \
                           yunjia-nrf51822 z1
 
 # Include packages that pull up and auto-init the link layer.
-USEPKG += NRF_802154_driver
-USEMODULE += xtimer
-USEMODULE += shell
-USEMODULE += shell_commands
+# USEMODULE += shell
+# USEMODULE += shell_commands
 
-# USEPKG += ndn-riot
+USEPKG += NRF_802154_driver
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the
 # development process:
 CFLAGS += -DDEVELHELP
-# CFLAGS += -DNRF_802154_USE_RAW_API
 CFLAGS += -DNRF52840_XXAA
+CFLAGS += -DRAAL_SINGLE_PHY
 
 
 # Change this to 0 show compiler invocation lines by default:
