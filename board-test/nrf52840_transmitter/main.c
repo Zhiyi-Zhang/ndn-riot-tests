@@ -2,16 +2,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-// #include "xtimer.h"
 
-// #include "board.h"
-// #include "shell.h"
-// #include "msg.h"
 #include "NRF_802154_driver/src/nrf_802154.h"
-
-// static const shell_command_t shell_commands[] = {
-//     { NULL, NULL, NULL }
-// };
 
 #define MAX_MESSAGE_SIZE 16
 #define CHANNEL          11
