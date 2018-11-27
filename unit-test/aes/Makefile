@@ -13,16 +13,6 @@ BOARD_INSUFFICIENT_MEMORY := airfy-beacon chronos msb-430 msb-430h nrf51dongle \
                           yunjia-nrf51822 z1
 
 # Include packages that pull up and auto-init the link layer.
-USEMODULE += gnrc_netdev_default
-USEMODULE += auto_init_gnrc_netif
-USEMODULE += random
-USEMODULE += shell
-USEMODULE += shell_commands
-USEMODULE += hashes
-USEMODULE += crypto
-USEMODULE += cipher_modes
-
-USEPKG += micro-ecc
 USEPKG += ndn-riot
 
 CFLAGS += -Werror
