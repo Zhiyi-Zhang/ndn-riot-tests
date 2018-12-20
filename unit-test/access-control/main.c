@@ -13,20 +13,14 @@
 #include "ndn_standalone/security/random.h"
 #include "ndn_standalone/security/key-storage.h"
 
-static uint8_t private[32] = {0};
-static uint8_t public[64] = {0};
-
 static int
 random_fill(uint8_t *dest, unsigned size) {
   uint8_t *personalization = (uint8_t*)"ndn-iot-access-control";
   uint8_t *additional_input = (uint8_t*)"additional-input";
   uint8_t *seed = (uint8_t*)"seed";
-  ndn_generator_t generator;
-  ndn_generator_init(&generator, personalization, sizeof(personalization),
-                     dest, (uint32_t)size);
-  ndn_generator_set_Seed(&generator, seed, sizeof(seed));
-  ndn_generator_set_AdditionalInput(&generator, additional_input, sizeof(additional_input));
-  int r = ndn_generator_hmacprng_generate(&generator);
+  int r = ndn_random_hmacprng(personalization, sizeof(personalization),
+                              dest, (uint32_t)size, seed, sizeof(seed),
+                              additional_input, sizeof(additional_input));
   if (!r)
     return 1;
   return 0;
@@ -46,7 +40,7 @@ int main(void)
   ndn_key_storage_init();
   ndn_ecc_pub_t* pub_key = NULL;
   ndn_ecc_prv_t* prv_key = NULL;
-  ndn_key_storage_get_empty_ecc_key(pub_key, prv_key);
+  ndn_key_storage_get_empty_ecc_key(&pub_key, &prv_key);
   ndn_ecc_key_make_key(pub_key, prv_key, NDN_ECDSA_CURVE_SECP256R1, 456, random_fill);
 
   // set producer, consumer and controller components and namesc
@@ -71,75 +65,59 @@ int main(void)
   ndn_name_t controller_identity = home_prefix;
   ndn_name_append_component(&controller_identity, &component_controller);
 
-  // create key name
-  ndn_name_t key_name = home_prefix;
-  char comp_key_str[] = "KEY";
-  name_component_t comp_key;
-  name_component_from_string(&comp_key, comp_key, sizeof(comp_key));
-  ndn_name_append_component(&key_name, &comp_key);
-
-  uint8_t random_id[4] = {0x12, 0x34, 0x56, 0x78};
-  name_component_t comp_keyid;
-  name_component_from_buffer(&comp_keyid, TLV_GenericNameComponent,
-                             random_id, sizeof(random_id));
-  ndn_name_append_component(&key_name, &comp_keyid);
+  uint32_t key_id = 1234;
 
 
-  uint8_t encoded_keyid[ndn_name_probe_block_size(&key_name)];
-  ndn_encoder_t encoder;
-  encoder_init(&encoder, encoded_keyid, sizeof(encoded_keyid));
-  ndn_name_tlv_encode(&encoder, &key_name);
-
-
+  printf("finish the preparation\n");
   ndn_interest_t interest;
   ndn_data_t response;
   uint8_t buffer[1024];
 
-
   // prepare ek interest
-  ndn_ac_prepare_ek_interest(&interest, &home_prefix, &component_producer,
-                             encoded_keyid, sizeof(encoded_keyid));
+  printf("***Encryptor prepare EK request***\n");
+  ndn_encoder_t encoder;
   encoder_init(&encoder, buffer, sizeof(buffer));
-  ndn_signed_interest_tlv_encode_ecdsa_sign(&encoder, &interest,
-                                            &producer_identity,
-                                            &prv_key);
-  printf("EK Interest TLV size is = %d\n", encoder.offset);
+  ndn_ac_prepare_key_request_interest(&encoder,
+                                      &home_prefix, &component_producer, key_id, prv_key, 1);
 
   // controller
   // set id and key
-  ndn_ac_state_init(&controller_identity, &pub_key, &prv_key);
+  ndn_ac_state_init(&controller_identity, pub_key, prv_key);
   ndn_interest_from_block(&interest, buffer, encoder.offset);
-  int r = ndn_signed_interest_ecdsa_verify(&interest, &pub_key);
+  int r = ndn_signed_interest_ecdsa_verify(&interest, pub_key);
   if (!r) printf("Signed EK Requset Verified\n");
   encoder_init(&encoder, buffer, sizeof(buffer));
-  ndn_ac_on_interest_process(&interest, &response);
+
+  printf("***Controller react on EK request***\n");
+  ndn_ac_on_interest_process(&response, &interest);
+
   ndn_data_tlv_encode_ecdsa_sign(&encoder, &response, &controller_identity,
-                                 &prv_key);
+                                 prv_key);
   printf("EK Response TLV size is = %d\n", encoder.offset);
   r = ndn_data_tlv_decode_ecdsa_verify(&response, buffer, encoder.offset,
-                                       &pub_key);
+                                       pub_key);
   if(!r) printf("EK Response Verified\n");
-  ndn_ac_ek_on_data_process(&response);
+
+  printf("***Encryptor react on EK response***\n");
+  ndn_ac_on_ek_response_process(&response);
 
   // prepare dk interest
-  ndn_ac_prepare_dk_interest(&interest, &home_prefix, &component_consumer,
-                             encoded_keyid, sizeof(encoded_keyid));
-  encoder_init(&encoder, buffer, sizeof(buffer));
-  ndn_signed_interest_tlv_encode_ecdsa_sign(&encoder, &interest,
-                                            &consumer_identity,
-                                            &prv_key);
-  ndn_ac_on_interest_process(&interest, &response);
+  printf("***Decryptor react on DK request***\n");
+  ndn_ac_prepare_key_request_interest(&encoder,
+                                      &home_prefix, &component_producer, key_id, prv_key, 0);
+
+  // controller receives dk request
+  printf("***Controller react on DK request***\n");
+  ndn_ac_on_interest_process(&response, &interest);
   encoder_init(&encoder, buffer, sizeof(buffer));
   ndn_data_tlv_encode_ecdsa_sign(&encoder, &response, &controller_identity,
-                                 &prv_key);
+                                 prv_key);
   printf("DK Response TLV size is = %d\n", encoder.offset);
   r = ndn_data_tlv_decode_ecdsa_verify(&response, buffer, encoder.offset,
-                                       &pub_key);
+                                       pub_key);
   if(!r) printf("DK Response Verified\n");
-  ndn_ac_dk_on_data_process(&response);
+  printf("***Decryptor react on DK response***\n");
+  ndn_ac_on_dk_response_process(&response);
 
-
-  //shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
-  /* should be never reached */
   return 0;
 }
