@@ -36,12 +36,9 @@ random_fill(uint8_t *dest, unsigned size) {
   uint8_t *personalization = (uint8_t*)"ndn-iot-service-discovery";
   uint8_t *additional_input = (uint8_t*)"additional-input";
   uint8_t *seed = (uint8_t*)"seed";
-  ndn_generator_t generator;
-  ndn_generator_init(&generator, personalization, sizeof(personalization),
-                     dest, (uint32_t)size);
-  ndn_generator_set_Seed(&generator, seed, sizeof(seed));
-  ndn_generator_set_AdditionalInput(&generator, additional_input, sizeof(additional_input));
-  int r = ndn_generator_hmacprng_generate(&generator);
+  int r = ndn_random_hmacprng(personalization, sizeof(personalization),
+                              dest, (uint32_t)size, seed, sizeof(seed),
+                              additional_input, sizeof(additional_input));
   if (!r)
     return 1;
   return 0;
