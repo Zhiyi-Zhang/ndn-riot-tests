@@ -102,12 +102,16 @@ int main(void)
   ndn_ac_on_ek_response_process(&response);
 
   // prepare dk interest
-  printf("***Decryptor react on DK request***\n");
+  printf("***Decryptor prepare DK request***\n");
+  encoder_init(&encoder, buffer, sizeof(buffer));
   ndn_ac_prepare_key_request_interest(&encoder,
                                       &home_prefix, &component_producer, key_id, prv_key, 0);
 
   // controller receives dk request
   printf("***Controller react on DK request***\n");
+  ndn_interest_from_block(&interest, buffer, encoder.offset);
+  r = ndn_signed_interest_ecdsa_verify(&interest, pub_key);
+  if (!r) printf("Signed DK Requset Verified\n");
   ndn_ac_on_interest_process(&response, &interest);
   encoder_init(&encoder, buffer, sizeof(buffer));
   ndn_data_tlv_encode_ecdsa_sign(&encoder, &response, &controller_identity,
