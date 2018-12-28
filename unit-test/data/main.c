@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Zhiyi Zhang
+ * Copyright (C) 2018 Zhiyi Zhang, Tianyuan Yu
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "ndn_standalone/encode/data.h"
+#include "ndn_standalone/security/crypto-key.h"
 #include "shell.h"
 #include "msg.h"
 
@@ -30,6 +31,18 @@ static uint8_t public[] = {
     0x1B, 0xD1, 0xAF, 0x76, 0xDB, 0xAD, 0xB8, 0xCE
 }; // this is secp160r1 key*/
 
+static uint8_t iv[] = {
+  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+  0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+};
+
+static uint8_t key[] = {
+  0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6,
+  0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c,
+  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+  0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+};
+
 // static const shell_command_t shell_commands[] = {
 //     { NULL, NULL, NULL }
 // };
@@ -40,7 +53,7 @@ int main(void)
     puts("All up, running the shell now");
     // char line_buf[SHELL_DEFAULT_BUFSIZE];
 
-    uint8_t buf[10] = {2,2,2,2,2,2,2,2,2,2};
+    uint8_t buf[16] = {2,2,2,2,2,2,2,2,2,2};
     uint8_t block_value[1024];
     ndn_encoder_t encoder;
 
@@ -151,6 +164,31 @@ int main(void)
     else
       printf("result: %d\n", result);
 
+    // Encrypted Data
+    printf("\n***Encrypted Data Tests*** \n");
+    ndn_aes_key_t aes;
+    ndn_aes_key_init(&aes, key, sizeof(key), 1234);
+    printf("\n***data content before encryption with aes***\n");
+    printf("data content block length: %d \n", data.content_size);
+    printf("data content block content: \n");
+    for (size_t i = 0; i < data.content_size; i++) {
+      printf("%d ", data.content_value[i]);
+    }
+    ndn_data_encrypted_content_generate(&data, &identity, iv, &aes);
+    printf("\n***data content after encryption with aes***\n");
+    printf("data content block length: %d \n", data.content_size);
+    printf("data content block content: \n");
+    for (size_t i = 0; i < data.content_size; i++) {
+      printf("%d ", data.content_value[i]);
+    }
+
+    ndn_data_encrypted_content_parse(&data, &identity, iv, &aes);
+    printf("\n***data content after parsing***\n");
+    printf("data content block length: %d \n", data.content_size);
+    printf("data content block content: \n");
+    for (size_t i = 0; i < data.content_size; i++) {
+      printf("%d ", data.content_value[i]);
+    }
 
     // shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
     /* should be never reached */
