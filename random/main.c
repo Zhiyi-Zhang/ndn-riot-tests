@@ -44,11 +44,8 @@ int main(void)
   memcpy(tsk, public, sizeof(tsk));
   memcpy(salt, public, sizeof(salt));
 
-  ndn_generator_t generator;
-  ndn_generator_init(&generator, shared, 32, tsk, 64);
-  ndn_generator_set_Seed(&generator, salt, 8);
-  ndn_generator_hmackdf_generate(&generator);
-
+  ndn_random_hkdf(shared, sizeof(shared), tsk, sizeof(tsk), 
+                  salt, sizeof(salt));
   printf("HMAC key generation\n");
   uint8_t i = 0;
   while (i < sizeof(tsk)){
@@ -58,11 +55,9 @@ int main(void)
   uint8_t *personalization = (uint8_t*)"ndn-iot-access-control";
   uint8_t *additional_input = (uint8_t*)"additional-input";
   uint8_t *seed = (uint8_t*)"seed";
-  ndn_generator_init(&generator, personalization, sizeof(personalization),
-                     salt, 8);
-  ndn_generator_set_Seed(&generator, seed, sizeof(seed));
-  ndn_generator_set_AdditionalInput(&generator, additional_input, sizeof(additional_input));
-  ndn_generator_hmacprng_generate(&generator);
+  ndn_random_hmacprng(personalization, sizeof(personalization),
+                      salt, sizeof(salt), seed, sizeof(seed),
+                      additional_input, sizeof(additional_input);
 
   printf("Salt generation\n");
   uint8_t j = 0;

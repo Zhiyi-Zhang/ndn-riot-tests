@@ -43,25 +43,18 @@ int main(void)
 
   // encrypt
   uint8_t cipher_text[sizeof(data) + TC_AES_BLOCK_SIZE] = {0};
-  ndn_encrypter_t encrypter;
-  ndn_encrypter_aes_cbc_init(&encrypter, data, sizeof(data),
-                             cipher_text, sizeof(cipher_text));
-  ndn_encrypter_aes_cbc_encrypt(&encrypter, iv, key, sizeof(key));
-
+  ndn_aes_cbc_encrypt(data, sizeof(data), cipher_text, sizeof(cipher_text),
+                      iv, key, sizeof(key));
   printf("ciphertext after encryption\n");
   j = 0;
   while (j < sizeof(data) + TC_AES_BLOCK_SIZE) {
     printf("0x%02x ", cipher_text[j++]);
   }
   putchar('\n');
-
   // decrypt
   uint8_t plain_text[sizeof(data)] = {0};
-  ndn_decrypter_t decrypter;
-  ndn_decrypter_aes_cbc_init(&decrypter, cipher_text, sizeof(cipher_text),
-                             plain_text, sizeof(plain_text));
-  ndn_decrypter_aes_cbc_decrypt(&decrypter, key, sizeof(key));
-
+  ndn_aes_cbc_decrypt(cipher_text, sizeof(cipher_text), plain_text, sizeof(plain_text),
+                      iv, key, sizeof(key));
   // print decrypted plain text
   j = 0;
   printf("plaintext after decryption\n");
