@@ -7,7 +7,7 @@
  */
 
 #include <stdio.h>
-#include "ndn-riot/security/sign-verify.h"
+#include "ndn_standalone/security/ndn-lite-sign-verify.h"
 
 static uint8_t private[] = {
   0x00, 0x79, 0xD8, 0x8A, 0x5E, 0x4A, 0xF3, 0x2D,

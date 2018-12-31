@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 
-#include "ndn-riot/encode/name.h"
+#include "ndn_standalone/encode/name.h"
 #include "shell.h"
 #include "msg.h"
 

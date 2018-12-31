@@ -7,8 +7,7 @@
  */
 
 #include <stdio.h>
-
-#include "ndn_standalone/security/aes.h"
+#include "ndn_standalone/security/ndn-lite-aes.h"
 #include "shell.h"
 #include "msg.h"
 

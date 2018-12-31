@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 
-#include "ndn-riot/encode/name.h"
-#include "ndn-riot/encode/signature.h"
+#include "ndn_standalone/encode/name.h"
+#include "ndn_standalone/encode/signature.h"
 #include "shell.h"
 #include "msg.h"
 

@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 
-#include "ndn-riot/encode/encoder.h"
-#include "ndn-riot/encode/decoder.h"
+#include "ndn_standalone/encode/encoder.h"
+#include "ndn_standalone/encode/decoder.h"
 #include "shell.h"
 #include "msg.h"
 

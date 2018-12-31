@@ -7,11 +7,11 @@
  */
 
 #include <stdio.h>
-#include "ndn_standalone/security/micro-ecc/uECC.h"
+#include "ndn_standalone/security/sec-lib/micro-ecc/uECC.h"
 #include "ndn_standalone/app-support/access-control.h"
 #include "ndn_standalone/encode/signed-interest.h"
-#include "ndn_standalone/security/random.h"
-#include "ndn_standalone/security/key-storage.h"
+#include "ndn_standalone/security/ndn-lite-random.h"
+#include "ndn_standalone/security/ndn-lite-key-storage.h"
 
 static int
 random_fill(uint8_t *dest, unsigned size) {

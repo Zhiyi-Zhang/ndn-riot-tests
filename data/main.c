@@ -7,9 +7,8 @@
  */
 
 #include <stdio.h>
-
 #include "ndn_standalone/encode/data.h"
-#include "ndn_standalone/security/crypto-key.h"
+#include "ndn_standalone/security/ndn-lite-crypto-key.h"
 #include "shell.h"
 #include "msg.h"
 
