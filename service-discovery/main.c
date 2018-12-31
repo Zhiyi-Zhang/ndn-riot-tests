@@ -7,7 +7,7 @@
  */
 
 #include <stdio.h>
-#include "ndn_standalone/security/sec-lib/micro-ecc/uECC.h"
+#include "ndn_standalone/security/crypto-key.h"
 #include "ndn_standalone/app-support/service-discovery.h"
 #include "ndn_standalone/encode/signed-interest.h"
 #include "ndn_standalone/security/ndn-lite-random.h"
@@ -51,9 +51,7 @@ int main(void)
 
   // intiate private and public key
   ndn_encoder_t encoder;
-  uECC_set_rng(&random_fill);
-  uECC_Curve curve = uECC_secp256r1();
-  uECC_make_key(public, private, curve);
+  ndn_ecc_key_set_rng(&random_fill);
 
   // set home prefix
   ndn_name_t home_prefix;
@@ -127,6 +125,7 @@ int main(void)
                    NDN_ECDSA_CURVE_SECP256R1, 123);
   ndn_ecc_pub_t pub_key;
   ndn_ecc_pub_init(&pub_key, public, sizeof(public), NDN_ECDSA_CURVE_SECP256R1, 456);
+  ndn_ecc_key_make_key(&pub_key, &prv_key, NDN_ECDSA_CURVE_SECP256R1, 789);
 
   printf("*** Query *** \n");
   ndn_sd_prepare_query(&interest, &entry->identity, &entry->services[0],
