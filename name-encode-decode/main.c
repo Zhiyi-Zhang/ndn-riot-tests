@@ -8,20 +8,12 @@
 
 #include <stdio.h>
 
-#include "ndn_standalone/encode/name.h"
+#include "ndn-lite/encode/name.h"
 #include "shell.h"
 #include "msg.h"
 
-// static const shell_command_t shell_commands[] = {
-//     { NULL, NULL, NULL }
-// };
-
 int main(void)
 {
-  /* start shell */
-  puts("All up, running the shell now");
-  // char line_buf[SHELL_DEFAULT_BUFSIZE];
-
   // tests start
 
   // component initialization
@@ -38,7 +30,7 @@ int main(void)
   // component encoding
   name_component_block_t check_block;
   ndn_encoder_t comp_encoder;
-  encoder_init(&comp_encoder, check_block.value, NAME_COMPONENT_BLOCK_SIZE);
+  encoder_init(&comp_encoder, check_block.value, NDN_NAME_COMPONENT_BLOCK_SIZE);
   name_component_tlv_encode(&comp_encoder, &component);
   check_block.size = comp_encoder.offset;
   printf("\n***component encoding***\n");
@@ -123,10 +115,5 @@ int main(void)
     }
     printf("\n");
   }
-
-  // tests end
-
-  // shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
-  /* should be never reached */
   return 0;
 }

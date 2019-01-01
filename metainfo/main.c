@@ -8,21 +8,13 @@
 
 #include <stdio.h>
 
-#include "ndn_standalone/encode/metainfo.h"
-#include "ndn_standalone/encode/name.h"
+#include "ndn-lite/encode/metainfo.h"
+#include "ndn-lite/encode/name.h"
 #include "shell.h"
 #include "msg.h"
 
-// static const shell_command_t shell_commands[] = {
-//     { NULL, NULL, NULL }
-// };
-
 int main(void)
 {
-  /* start shell */
-  puts("All up, running the shell now");
-  // char line_buf[SHELL_DEFAULT_BUFSIZE];
-
   // tests start
 
   // component initialization
@@ -69,7 +61,5 @@ int main(void)
     printf("%d ", meta_decode.final_block_id.value[i]);
   }
 
-  //shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
-  /* should be never reached */
   return 0;
 }
