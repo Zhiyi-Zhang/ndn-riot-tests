@@ -13,17 +13,12 @@ BOARD_INSUFFICIENT_MEMORY := airfy-beacon chronos msb-430 msb-430h nrf51dongle \
                           yunjia-nrf51822 z1
 
 # Include packages that pull up and auto-init the link layer.
-USEPKG += ndn-riot
-
-CFLAGS += -Werror
-CFLAGS += -Wunused-function
+USEPKG += ndn-lite
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the
 # development process:
 CFLAGS += -DDEVELHELP
-CFLAGS += -DCRYPTO_AES
-CFLAGS += -DCRYPTO_THREEDES
 
 # Change this to 0 show compiler invocation lines by default:
 QUIET ?= 1
