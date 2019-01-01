@@ -42,15 +42,14 @@ void test_unsigned_interest(ndn_name_t* name)
   printf("hop limit: %d\n", interest.hop_limit);
 
   // Interest encodes
-  uint32_t block_size = ndn_interest_probe_block_size(&interest);
-  uint8_t block_value[block_size];
+  uint8_t block_value[200];
   ndn_encoder_t encoder;
-  encoder_init(&encoder, block_value, block_size);
+  encoder_init(&encoder, block_value, sizeof(block_value));
   ndn_interest_tlv_encode(&encoder, &interest);
   printf("***Interest Encodes*** \n");
-  printf("block size: %d\n", (int) block_size);
+  printf("block size: %d\n", (int) encoder.offset);
   printf("block content: \n");
-  for (size_t i = 0; i < block_size; i++) {
+  for (size_t i = 0; i < encoder.offset; i++) {
     printf("%d ", block_value[i]);
   }
   printf("\n");
@@ -58,7 +57,7 @@ void test_unsigned_interest(ndn_name_t* name)
   // Interest decodes
   ndn_interest_t check_interest;
   printf("before function starts\n");
-  int result = ndn_interest_from_block(&check_interest, block_value, block_size);
+  int result = ndn_interest_from_block(&check_interest, block_value, encoder.offset);
   printf("***Interest Decodes*** \n");
   printf("result number: %d\n", result);
   printf("hop limit: %d\n", interest.hop_limit);
