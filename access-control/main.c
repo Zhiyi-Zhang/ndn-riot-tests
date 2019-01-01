@@ -41,7 +41,8 @@ int main(void)
   ndn_ecc_pub_t* pub_key = NULL;
   ndn_ecc_prv_t* prv_key = NULL;
   ndn_key_storage_get_empty_ecc_key(&pub_key, &prv_key);
-  ndn_ecc_key_make_key(pub_key, prv_key, NDN_ECDSA_CURVE_SECP256R1, 456, random_fill);
+  ndn_ecc_key_set_rng(random_fill);
+  ndn_ecc_key_make_key(pub_key, prv_key, NDN_ECDSA_CURVE_SECP256R1, 456);
 
   // set producer, consumer and controller components and namesc
   char comp_producer[] = "producer";
