@@ -7,11 +7,11 @@
  */
 
 #include <stdio.h>
-#include "ndn_standalone/security/crypto-key.h"
-#include "ndn_standalone/app-support/service-discovery.h"
-#include "ndn_standalone/encode/signed-interest.h"
-#include "ndn_standalone/security/ndn-lite-random.h"
-#include "ndn_standalone/ndn-service.h"
+#include "ndn-lite/security/ndn-lite-crypto-key.h"
+#include "ndn-lite/app-support/service-discovery.h"
+#include "ndn-lite/encode/signed-interest.h"
+#include "ndn-lite/security/ndn-lite-random.h"
+#include "ndn-lite/ndn-service.h"
 
 static uint8_t private[32] = {
   0x00, 0x79, 0xD8, 0x8A, 0x5E, 0x4A, 0xF3, 0x2D,

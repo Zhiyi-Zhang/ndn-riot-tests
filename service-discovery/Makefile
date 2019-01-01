@@ -13,14 +13,7 @@ BOARD_INSUFFICIENT_MEMORY := airfy-beacon chronos msb-430 msb-430h nrf51dongle \
                           yunjia-nrf51822 z1
 
 # Include packages that pull up and auto-init the link layer.
-
-USEPKG += ndn-riot
-USEMODULE += gnrc_netdev_default
-USEMODULE += auto_init_gnrc_netif
-USEMODULE += random
-USEMODULE += shell
-USEMODULE += shell_commands
-USEMODULE += ps
+USEPKG += ndn-lite
 
 # Comment this out to disable code in RIOT that does safety checking
 # which is not needed in a production environment but helps in the

@@ -8,15 +8,10 @@
 
 #include <stdio.h>
 
-#include "ndn_standalone/encode/name.h"
-#include "ndn_standalone/encode/signature.h"
+#include "ndn-lite/encode/name.h"
+#include "ndn-lite/encode/signature.h"
 #include "shell.h"
 #include "msg.h"
-
-// static const shell_command_t shell_commands[] = {
-//     { NULL, NULL, NULL }
-// };
-
 
 static uint8_t bytes[] = {
   0xB2, 0xFC, 0x62, 0x14, 0x78, 0xDC, 0x10, 0xEA,
@@ -31,12 +26,6 @@ static uint8_t bytes[] = {
 
 int main(void)
 {
-  /* start shell */
-  puts("All up, running the shell now");
-  // char line_buf[SHELL_DEFAULT_BUFSIZE];
-
-  // tests start
-
   // name init
   char key_name_string[] = "/smarthome/controller/key/001";
   ndn_name_t name;
@@ -123,8 +112,5 @@ int main(void)
   for (size_t i = 0; i < signature1_check.sig_size; i++) {
     printf("%d ", signature1_check.sig_value[i]);
   }
-
-  //shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
-  /* should be never reached */
   return 0;
 }
