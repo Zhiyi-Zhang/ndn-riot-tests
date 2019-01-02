@@ -7,7 +7,9 @@
  */
 
 #include <stdio.h>
-#include "ndn-lite/security/ndn-lite-sign-verify.h"
+#include "ndn-lite/security/ndn-lite-ecc.h"
+#include "ndn-lite/security/ndn-lite-sha.h"
+#include "ndn-lite/security/ndn-lite-hmac.h"
 
 static uint8_t private[] = {
   0x00, 0x79, 0xD8, 0x8A, 0x5E, 0x4A, 0xF3, 0x2D,
@@ -39,32 +41,32 @@ int main(void)
   for (size_t i = 0; i < 100; ++i)
     data[i] = 0x31;
 
-  result = ndn_signer_sha256_sign(data, sizeof(data),
-                                  signature, sizeof(signature), &used_size);
+  result = ndn_sha256_sign(data, sizeof(data),
+                           signature, sizeof(signature), &used_size);
   if(result == 0)
     printf("sha256 signing succeeded\n");
-  result = ndn_verifier_sha256_verify(data, sizeof(data),
-                                      signature, used_size);
+  result = ndn_sha256_verify(data, sizeof(data),
+                             signature, used_size);
   if(result == 0)
     printf("sha256 verification succeeded\n");
 
-  result = ndn_signer_ecdsa_sign(data, sizeof(data),
-                                 signature, sizeof(signature),
-                                 private, 32, NDN_ECDSA_CURVE_SECP160R1, &used_size);
+  result = ndn_ecdsa_sign(data, sizeof(data),
+                          signature, sizeof(signature),
+                          private, 32, NDN_ECDSA_CURVE_SECP160R1, &used_size);
   if(result == 0)
     printf("ecdsa signing succeeded\n");
-  result = ndn_verifier_ecdsa_verify(data, sizeof(data),
-                                     signature, used_size,
-                                     public, 64, NDN_ECDSA_CURVE_SECP160R1);
+  result = ndn_ecdsa_verify(data, sizeof(data),
+                            signature, used_size,
+                            public, 64, NDN_ECDSA_CURVE_SECP160R1);
   if(result == 0)
     printf("ecdsa verification succeeded\n");
 
-  result = ndn_signer_hmac_sign(data, sizeof(data),
-                                signature, sizeof(signature), private, 32, &used_size);
+  result = ndn_hmac_sign(data, sizeof(data),
+                         signature, sizeof(signature), private, 32, &used_size);
   if(result == 0)
     printf("hmac signing succeeded\n");
-  result = ndn_verifier_hmac_verify(data, sizeof(data),
-                                    signature, used_size, private, 32);
+  result = ndn_hmac_verify(data, sizeof(data),
+                           signature, used_size, private, 32);
   if(result == 0)
     printf("hmac verification succeeded\n");
 

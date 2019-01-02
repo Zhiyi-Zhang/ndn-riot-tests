@@ -7,20 +7,20 @@
  */
 
 #include <stdio.h>
-#include "ndn-lite/security/sec-lib/micro-ecc/uECC.h"
 #include "ndn-lite/app-support/access-control.h"
 #include "ndn-lite/encode/signed-interest.h"
-#include "ndn-lite/security/ndn-lite-random.h"
-#include "ndn-lite/security/ndn-lite-key-storage.h"
+#include "ndn-lite/security/ndn-lite-ecc.h"
+#include "ndn-lite/security/ndn-lite-hmac.h"
+#include "ndn-lite/encode/key-storage.h"
 
 static int
 random_fill(uint8_t *dest, unsigned size) {
   uint8_t *personalization = (uint8_t*)"ndn-iot-access-control";
   uint8_t *additional_input = (uint8_t*)"additional-input";
   uint8_t *seed = (uint8_t*)"seed";
-  int r = ndn_random_hmacprng(personalization, sizeof(personalization),
-                              dest, (uint32_t)size, seed, sizeof(seed),
-                              additional_input, sizeof(additional_input));
+  int r = ndn_hmacprng(personalization, sizeof(personalization),
+                       dest, (uint32_t)size, seed, sizeof(seed),
+                       additional_input, sizeof(additional_input));
   if (!r)
     return 1;
   return 0;
@@ -41,8 +41,8 @@ int main(void)
   ndn_ecc_pub_t* pub_key = NULL;
   ndn_ecc_prv_t* prv_key = NULL;
   ndn_key_storage_get_empty_ecc_key(&pub_key, &prv_key);
-  ndn_ecc_key_set_rng(random_fill);
-  ndn_ecc_key_make_key(pub_key, prv_key, NDN_ECDSA_CURVE_SECP256R1, 456);
+  ndn_ecc_set_rng(random_fill);
+  ndn_ecc_make_key(pub_key, prv_key, NDN_ECDSA_CURVE_SECP256R1, 456);
 
   // set producer, consumer and controller components and namesc
   char comp_producer[] = "producer";

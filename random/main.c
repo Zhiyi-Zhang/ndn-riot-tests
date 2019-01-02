@@ -7,7 +7,8 @@
  */
 
 #include <stdio.h>
-#include "ndn-lite/security/ndn-lite-random.h"
+#include "ndn-lite/security/ndn-lite-hmac.h"
+#include <string.h>
 
 static uint8_t private[] = {
   0x00, 0x79, 0xD8, 0x8A, 0x5E, 0x4A, 0xF3, 0x2D,
@@ -36,8 +37,8 @@ int main(void)
   memcpy(tsk, public, sizeof(tsk));
   memcpy(salt, public, sizeof(salt));
 
-  ndn_random_hkdf(shared, sizeof(shared), tsk, sizeof(tsk),
-                  salt, sizeof(salt));
+  ndn_hkdf(shared, sizeof(shared), tsk, sizeof(tsk),
+           salt, sizeof(salt));
   printf("HMAC key generation\n");
   uint8_t i = 0;
   while (i < sizeof(tsk)){
@@ -47,9 +48,9 @@ int main(void)
   uint8_t *personalization = (uint8_t*)"ndn-iot-access-control";
   uint8_t *additional_input = (uint8_t*)"additional-input";
   uint8_t *seed = (uint8_t*)"seed";
-  ndn_random_hmacprng(personalization, sizeof(personalization),
-                      salt, sizeof(salt), seed, sizeof(seed),
-                      additional_input, sizeof(additional_input));
+  ndn_hmacprng(personalization, sizeof(personalization),
+               salt, sizeof(salt), seed, sizeof(seed),
+               additional_input, sizeof(additional_input));
 
   printf("Salt generation\n");
   uint8_t j = 0;

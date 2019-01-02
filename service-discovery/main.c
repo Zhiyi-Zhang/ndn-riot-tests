@@ -10,7 +10,8 @@
 #include "ndn-lite/security/ndn-lite-crypto-key.h"
 #include "ndn-lite/app-support/service-discovery.h"
 #include "ndn-lite/encode/signed-interest.h"
-#include "ndn-lite/security/ndn-lite-random.h"
+#include "ndn-lite/security/ndn-lite-hmac.h"
+#include "ndn-lite/security/ndn-lite-ecc.h"
 #include "ndn-lite/ndn-service.h"
 
 static uint8_t private[32] = {
@@ -36,9 +37,9 @@ random_fill(uint8_t *dest, unsigned size) {
   uint8_t *personalization = (uint8_t*)"ndn-iot-service-discovery";
   uint8_t *additional_input = (uint8_t*)"additional-input";
   uint8_t *seed = (uint8_t*)"seed";
-  int r = ndn_random_hmacprng(personalization, sizeof(personalization),
-                              dest, (uint32_t)size, seed, sizeof(seed),
-                              additional_input, sizeof(additional_input));
+  int r = ndn_hmacprng(personalization, sizeof(personalization),
+                       dest, (uint32_t)size, seed, sizeof(seed),
+                       additional_input, sizeof(additional_input));
   if (!r)
     return 1;
   return 0;
@@ -51,7 +52,7 @@ int main(void)
 
   // intiate private and public key
   ndn_encoder_t encoder;
-  ndn_ecc_key_set_rng(&random_fill);
+  ndn_ecc_set_rng(&random_fill);
 
   // set home prefix
   ndn_name_t home_prefix;
@@ -125,7 +126,7 @@ int main(void)
                    NDN_ECDSA_CURVE_SECP256R1, 123);
   ndn_ecc_pub_t pub_key;
   ndn_ecc_pub_init(&pub_key, public, sizeof(public), NDN_ECDSA_CURVE_SECP256R1, 456);
-  ndn_ecc_key_make_key(&pub_key, &prv_key, NDN_ECDSA_CURVE_SECP256R1, 789);
+  ndn_ecc_make_key(&pub_key, &prv_key, NDN_ECDSA_CURVE_SECP256R1, 789);
 
   printf("*** Query *** \n");
   ndn_sd_prepare_query(&interest, &entry->identity, &entry->services[0],
