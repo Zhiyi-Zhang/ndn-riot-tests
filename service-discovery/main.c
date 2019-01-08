@@ -12,7 +12,7 @@
 #include "ndn-lite/encode/signed-interest.h"
 #include "ndn-lite/security/ndn-lite-hmac.h"
 #include "ndn-lite/security/ndn-lite-ecc.h"
-#include "ndn-lite/ndn-service.h"
+#include "ndn-lite/ndn-services.h"
 
 static uint8_t private[32] = {
   0x00, 0x79, 0xD8, 0x8A, 0x5E, 0x4A, 0xF3, 0x2D,
@@ -47,6 +47,8 @@ random_fill(uint8_t *dest, unsigned size) {
 
 int main(void)
 {
+  ndn_security_init();
+
   /* start shell */
   puts("All up, running the shell now");
 

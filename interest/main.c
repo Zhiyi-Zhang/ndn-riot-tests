@@ -177,6 +177,7 @@ void test_digest_signed_interest(ndn_name_t* name)
 int main(void)
 {
   // tests start
+  ndn_security_init();
 
   // init a name
   char name_string[] = "/aaa/bbb/ccc/ddd";

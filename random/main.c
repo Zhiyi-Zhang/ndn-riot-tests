@@ -30,6 +30,8 @@ static uint8_t public[] = {
 
 int main(void)
 {
+  ndn_security_init();
+
   uint8_t shared[32];
   uint8_t tsk[64];
   uint8_t salt[8];

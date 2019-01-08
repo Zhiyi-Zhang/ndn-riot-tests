@@ -44,10 +44,7 @@ static uint8_t key[] = {
 
 int main(void)
 {
-  /* start shell */
-  puts("All up, running the shell now");
-  // char line_buf[SHELL_DEFAULT_BUFSIZE];
-
+  ndn_security_init();
   uint8_t buf[16] = {2,2,2,2,2,2,2,2,2,2};
   uint8_t block_value[1024];
   ndn_encoder_t encoder;
@@ -186,6 +183,7 @@ int main(void)
   for (size_t i = 0; i < used; i++) {
     printf("%d ", decrypt_output[i]);
   }
+  printf("\nTest End");
 
   return 0;
 }

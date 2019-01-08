@@ -10,6 +10,7 @@
 #include "ndn-lite/security/ndn-lite-ecc.h"
 #include "ndn-lite/security/ndn-lite-sha.h"
 #include "ndn-lite/security/ndn-lite-hmac.h"
+#include "ndn-lite/ndn-enums.h"
 
 static uint8_t private[] = {
   0x00, 0x79, 0xD8, 0x8A, 0x5E, 0x4A, 0xF3, 0x2D,
@@ -32,6 +33,8 @@ static uint8_t public[] = {
 
 int main(void)
 {
+  ndn_security_init();
+
   //initialize
   uint8_t data[100];
   uint8_t signature[64];
@@ -50,23 +53,28 @@ int main(void)
   if(result == 0)
     printf("sha256 verification succeeded\n");
 
+  ndn_ecc_pub_t ecc_pub;
+  ndn_ecc_prv_t ecc_prv;
+  ndn_ecc_pub_init(&ecc_pub, public, 64, NDN_ECDSA_CURVE_SECP160R1, 123);
+  ndn_ecc_prv_init(&ecc_prv, private, 32, NDN_ECDSA_CURVE_SECP160R1, 123);
   result = ndn_ecdsa_sign(data, sizeof(data),
                           signature, sizeof(signature),
-                          private, 32, NDN_ECDSA_CURVE_SECP160R1, &used_size);
+                          &ecc_prv, NDN_ECDSA_CURVE_SECP160R1, &used_size);
   if(result == 0)
     printf("ecdsa signing succeeded\n");
   result = ndn_ecdsa_verify(data, sizeof(data),
                             signature, used_size,
-                            public, 64, NDN_ECDSA_CURVE_SECP160R1);
+                            &ecc_pub, NDN_ECDSA_CURVE_SECP160R1);
   if(result == 0)
     printf("ecdsa verification succeeded\n");
 
+  ndn_hmac_key_t hmac_key;
+  ndn_hmac_key_init(&hmac_key, private, 32, 124);
   result = ndn_hmac_sign(data, sizeof(data),
-                         signature, sizeof(signature), private, 32, &used_size);
+                         signature, sizeof(signature), &hmac_key, &used_size);
   if(result == 0)
     printf("hmac signing succeeded\n");
-  result = ndn_hmac_verify(data, sizeof(data),
-                           signature, used_size, private, 32);
+  result = ndn_hmac_verify(data, sizeof(data), signature, used_size, &hmac_key);
   if(result == 0)
     printf("hmac verification succeeded\n");
 

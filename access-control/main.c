@@ -28,8 +28,8 @@ random_fill(uint8_t *dest, unsigned size) {
 
 int main(void)
 {
-  /* start shell */
-  puts("All up, running the shell now");
+  // tests start
+  ndn_security_init();
 
   // set home prefix
   ndn_name_t home_prefix;

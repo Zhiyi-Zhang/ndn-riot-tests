@@ -10,6 +10,7 @@
 
 #include "ndn-lite/encode/name.h"
 #include "ndn-lite/encode/signature.h"
+#include "ndn-lite/security/ndn-lite-sec-config.h"
 #include "shell.h"
 #include "msg.h"
 
@@ -26,6 +27,7 @@ static uint8_t bytes[] = {
 
 int main(void)
 {
+  ndn_security_init();
   // name init
   char key_name_string[] = "/smarthome/controller/key/001";
   ndn_name_t name;

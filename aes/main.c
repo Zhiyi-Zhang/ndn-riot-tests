@@ -32,6 +32,7 @@ static uint8_t data[] = {
 int main(void)
 {
   puts("Test AES-CBC Mode");
+  ndn_security_init();
 
   //initialize
   uint32_t j = 0;
@@ -43,8 +44,9 @@ int main(void)
 
   // encrypt
   uint8_t cipher_text[sizeof(data) + 16] = {0};
-  ndn_aes_cbc_encrypt(data, sizeof(data), cipher_text, sizeof(cipher_text),
-                      iv, key, sizeof(key));
+  ndn_aes_key_t aes_key;
+  ndn_aes_key_init(&aes_key, key, sizeof(key), 123);
+  ndn_aes_cbc_encrypt(data, sizeof(data), cipher_text, sizeof(cipher_text), iv, &aes_key);
   printf("ciphertext after encryption\n");
   j = 0;
   while (j < sizeof(data) + 16) {
@@ -54,7 +56,7 @@ int main(void)
   // decrypt
   uint8_t plain_text[sizeof(data)] = {0};
   ndn_aes_cbc_decrypt(cipher_text, sizeof(cipher_text), plain_text, sizeof(plain_text),
-                      iv, key, sizeof(key));
+                      iv, &aes_key);
   // print decrypted plain text
   j = 0;
   printf("plaintext after decryption\n");
