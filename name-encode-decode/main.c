@@ -115,5 +115,7 @@ int main(void)
     }
     printf("\n");
   }
+
+  printf("\nTest END\n");
   return 0;
 }
