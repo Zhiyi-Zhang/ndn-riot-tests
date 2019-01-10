@@ -49,6 +49,7 @@ int main(void)
     printf("\n");
 
     ndn_frag_assembler_assemble_frag(&assembler, frag, 16);
+    printf("assembling: is finished?: %d\n", assembler.is_finished);
   }
 
   printf("after assembling pkt: \n");
