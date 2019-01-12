@@ -59,7 +59,7 @@ void test_unsigned_interest(ndn_name_t* name)
   printf("before function starts\n");
   int result = ndn_interest_from_block(&check_interest, block_value, encoder.offset);
   printf("***Interest Decodes*** \n");
-  printf("result number: %d\n", result);
+  printf("decoding result value: %d\n", result);
   printf("hop limit: %d\n", interest.hop_limit);
   printf("name component size: %d\n", (int) check_interest.name.components_size);
   for (size_t i = 0; i < check_interest.name.components_size; i++) {
@@ -88,7 +88,8 @@ void test_ecdsa_signed_interest(ndn_name_t* name, ndn_name_t* identity)
   ndn_encoder_t encoder;
   encoder_init(&encoder, pool, 256);
   printf("\n***interest signing with ecdsa sig***\n");
-  ndn_signed_interest_tlv_encode_ecdsa_sign(&encoder, &interest, identity, &prv_key);
+  ndn_signed_interest_ecdsa_sign(&interest, identity, &prv_key);
+  ndn_interest_tlv_encode(&encoder, &interest);
   printf("interest block length: %d \n", (int) encoder.offset);
   printf("interest block content: \n");
   for (size_t i = 0; i < encoder.offset; i++) {
@@ -99,8 +100,9 @@ void test_ecdsa_signed_interest(ndn_name_t* name, ndn_name_t* identity)
   ndn_ecc_pub_t pub_key;
   ndn_interest_t check_interest;
   ndn_ecc_pub_init(&pub_key, public, sizeof(public), NDN_ECDSA_CURVE_SECP160R1, 1234);
-  ndn_interest_from_block(&check_interest, pool, encoder.offset);
-  int result = ndn_signed_interest_ecdsa_verify(&check_interest, &pub_key);
+  int result = ndn_interest_from_block(&check_interest, pool, encoder.offset);
+  printf("decoding result value: %d\n", result);
+  result = ndn_signed_interest_ecdsa_verify(&check_interest, &pub_key);
   if (result == 0) {
     printf("interest encoding and ecdsa sig verification succeeded");
   }
@@ -125,7 +127,8 @@ void test_hmac_signed_interest(ndn_name_t* name, ndn_name_t* identity)
   ndn_encoder_t encoder;
   encoder_init(&encoder, pool, 256);
   printf("\n***interest signing with hmac sig***\n");
-  ndn_signed_interest_tlv_encode_hmac_sign(&encoder, &interest, identity, &hmac_key);
+  ndn_signed_interest_hmac_sign(&interest, identity, &hmac_key);
+  ndn_interest_tlv_encode(&encoder, &interest);
   printf("interest block length: %d \n", (int) encoder.offset);
   printf("interest block content: \n");
   for (size_t i = 0; i < encoder.offset; i++) {
@@ -134,8 +137,9 @@ void test_hmac_signed_interest(ndn_name_t* name, ndn_name_t* identity)
   printf("\n");
 
   ndn_interest_t check_interest;
-  ndn_interest_from_block(&check_interest, pool, encoder.offset);
-  int result = ndn_signed_interest_hmac_verify(&check_interest, &hmac_key);
+  int result = ndn_interest_from_block(&check_interest, pool, encoder.offset);
+  printf("decoding result value: %d\n", result);
+  result = ndn_signed_interest_hmac_verify(&check_interest, &hmac_key);
   if (result == 0) {
     printf("interest encoding and hmac sig verification succeeded");
   }
@@ -157,7 +161,8 @@ void test_digest_signed_interest(ndn_name_t* name)
   ndn_encoder_t encoder;
   encoder_init(&encoder, pool, 256);
   printf("\n***interest signing with digest sig***\n");
-  ndn_signed_interest_tlv_encode_digest_sign(&encoder, &interest);
+  ndn_signed_interest_digest_sign(&interest);
+  ndn_interest_tlv_encode(&encoder, &interest);
   printf("interest block length: %d \n", (int) encoder.offset);
   printf("interest block content: \n");
   for (size_t i = 0; i < encoder.offset; i++) {
@@ -166,8 +171,9 @@ void test_digest_signed_interest(ndn_name_t* name)
   printf("\n");
 
   ndn_interest_t check_interest;
-  ndn_interest_from_block(&check_interest, pool, encoder.offset);
-  int result = ndn_signed_interest_digest_verify(&check_interest);
+  int result = ndn_interest_from_block(&check_interest, pool, encoder.offset);
+  printf("decoding result value: %d\n", result);
+  result = ndn_signed_interest_digest_verify(&check_interest);
   if (result == 0) {
     printf("interest encoding and digest sig verification succeeded");
   }

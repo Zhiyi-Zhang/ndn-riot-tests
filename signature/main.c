@@ -48,6 +48,10 @@ int main(void)
   char not_after[] = "20191031T000001";
   ndn_signature_set_validity_period(&signature1, (uint8_t*)not_before, (uint8_t*)not_after);
   ndn_signature_set_key_locator(&signature1, &name);
+  // set signature nonce
+  ndn_signature_set_signature_info_nonce(&signature1, 0);
+  // set timestamp
+  ndn_signature_set_timestamp(&signature1, 0);
 
   // signature info encoding
   uint32_t sig1_info_block_size = ndn_signature_info_probe_block_size(&signature1);
