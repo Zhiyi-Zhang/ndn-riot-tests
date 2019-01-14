@@ -138,9 +138,8 @@ int main(void)
   for (uint8_t i = 0; i < entry->services[0].id_size; i++)
     printf("%c", (char)entry->services[0].id_value[i]);
   printf("\n");
-  ndn_signed_interest_tlv_encode_ecdsa_sign(&encoder, &interest,
-                                            &consumer_identity,
-                                            &prv_key);
+  ndn_signed_interest_ecdsa_sign(&interest, &consumer_identity, &prv_key);
+  ndn_interest_tlv_encode(&encoder, &interest);
   printf("First Query Signed\n");
   ndn_interest_from_block(&interest, buffer, encoder.offset);
   int r = ndn_signed_interest_ecdsa_verify(&interest, &pub_key);
@@ -184,11 +183,9 @@ int main(void)
   ndn_sd_prepare_query(&interest, &entry->identity, &entry->services[1],
                        NULL, 0);
   printf("Second Query Preparation Success\n");
-  ndn_signed_interest_tlv_encode_ecdsa_sign(&encoder, &interest,
-                                            &consumer_identity,
-                                            &prv_key);
+  ndn_signed_interest_ecdsa_sign(&interest, &consumer_identity, &prv_key);
+  ndn_interest_tlv_encode(&encoder, &interest);
   printf("Second Query Signed\n");
-
   ndn_interest_from_block(&interest, buffer, encoder.offset);
   r = ndn_signed_interest_ecdsa_verify(&interest, &pub_key);
   if (!r) printf("Signed Second Query Verified\n");

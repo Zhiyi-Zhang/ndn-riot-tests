@@ -43,7 +43,8 @@ int main(void)
 
   // signature init
   ndn_signature_t signature1;
-  ndn_signature_init(&signature1, NDN_SIG_TYPE_ECDSA_SHA256);
+  ndn_signature_init(&signature1);
+  ndn_signature_set_signature_type(&signature1, NDN_SIG_TYPE_ECDSA_SHA256);
   char not_before[] = "20181031T000001";
   char not_after[] = "20191031T000001";
   ndn_signature_set_validity_period(&signature1, (uint8_t*)not_before, (uint8_t*)not_after);
