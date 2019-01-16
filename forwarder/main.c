@@ -43,7 +43,7 @@ on_data_callback(const uint8_t* data, uint32_t data_size)
     printf("data encoding and ecdsa sig verification succeeded\n");
   }
   else
-    printf("result: %d\n", result);
+    printf("data encoding and ecdsa sig verification failed, error code: %d\n", result);
   return 0;
 }
 
@@ -66,6 +66,9 @@ on_interest(const uint8_t* interest, uint32_t interest_size)
 
 int main(void)
 {
+
+  ndn_security_init();
+  
   // The forwarder unit test model
   /*
    *  +----+       +---------+     +------------+
@@ -126,13 +129,13 @@ int main(void)
   uint8_t block_value[1024];
   ndn_data_t data;
   ndn_data_set_content(&data, buf, sizeof(buf));
-
+  
   // set name, metainfo
   char data_name_string[] = "/aaa/bbb/ccc/ddd";
   ndn_name_from_string(&data.name, data_name_string, sizeof(data_name_string));
   ndn_metainfo_init(&data.metainfo);
   ndn_metainfo_set_content_type(&data.metainfo, NDN_CONTENT_TYPE_BLOB);
-
+  
   // sign the packet
   ndn_ecc_prv_t prv_key;
   ndn_ecc_prv_init(&prv_key, private, sizeof(private), NDN_ECDSA_CURVE_SECP160R1, 1234);
@@ -145,7 +148,7 @@ int main(void)
   // receive the Data packet
   printf("\n***Dummy Face receives an Data /aaa/bbb/ccc/ddd***\n");
   ndn_face_receive(&dummy_face.intf, block_value, encoder.offset);
-
+  
   (void)forwarder;
   (void)direct_face;
   return 0;
