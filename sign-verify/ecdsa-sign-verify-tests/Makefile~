@@ -1,0 +1,3 @@
+MODULE = ecdsa-tests-curve-specifics
+
+include $(RIOTBASE)/Makefile.base

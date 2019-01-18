@@ -1,11 +1,14 @@
 # name of your application
 APPLICATION = sign_verify
+# This has to be the absolute path to the RIOT base directory:
+RIOTBASE ?= $(CURDIR)/../../RIOT
+
+DIRS += ecdsa-sign-verify-tests hmac-sign-verify-tests sha256-sign-verify-tests asn-encode-decode-tests
 
 # If no BOARD is found in the environment, use this default:
 BOARD ?= native
 
-# This has to be the absolute path to the RIOT base directory:
-RIOTBASE ?= $(CURDIR)/../../RIOT
+USEMODULE += ecdsa-sign-verify-tests hmac-sign-verify-tests asn-encode-decode-tests sha256-sign-verify-tests
 
 BOARD_INSUFFICIENT_MEMORY := airfy-beacon chronos msb-430 msb-430h nrf51dongle \
                           nrf6310 nucleo-f103 nucleo-f334 pca10000 pca10005 spark-core \
