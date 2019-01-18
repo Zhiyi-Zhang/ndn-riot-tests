@@ -1,2 +1,0 @@
-MODULE = asn-encode-decode-tests
-include $(RIOTBASE)/Makefile.include

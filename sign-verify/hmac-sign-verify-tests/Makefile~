@@ -1,3 +1,0 @@
-MODULE = hmac-sign-verify-tests
-include $(RIOTBASE)/Makefile.base
-include $(RIOTBASE)/Makefile.include

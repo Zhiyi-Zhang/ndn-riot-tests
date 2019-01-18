@@ -1,5 +1,0 @@
-MODULE = ecdsa-sign-verify-tests
-
-USEMODULE += ecdsa-test-curve-specifics
-
-include $(RIOTBASE)/Makefile.base
