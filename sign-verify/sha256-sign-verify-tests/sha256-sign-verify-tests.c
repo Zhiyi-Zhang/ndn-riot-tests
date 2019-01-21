@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "sha256-sign-verify-tests-def.h"
 #include "../test-helpers.h"
@@ -30,6 +31,9 @@ static uint8_t test_message[10] = {
 
 static uint8_t test_hash_buffer[TEST_HASH_BUFFER_LEN];
 
+static const char *_current_test_name;
+static bool _all_function_calls_succeeded = true;
+
 void _run_sha256_sign_verify_test(sha256_sign_verify_test_t *test);
 
 bool run_sha256_sign_verify_tests(void) {
@@ -43,10 +47,10 @@ bool run_sha256_sign_verify_tests(void) {
 
 void _run_sha256_sign_verify_test(sha256_sign_verify_test_t *test) {
 
+  _current_test_name = test->test_names[test->test_name_index];
+  _all_function_calls_succeeded = true;
+  
   ndn_security_init();
-
-  bool sha256_sign_success = false;
-  bool sha256_verify_success = false;
 
   int ret_val = -1;
 
@@ -55,22 +59,18 @@ void _run_sha256_sign_verify_test(sha256_sign_verify_test_t *test) {
                             test_hash_buffer, sizeof(test_hash_buffer), 
                             &hash_size);
   if (ret_val != 0) {
-    printf("ndn_sha256_sign failed, error code: %d\n", ret_val);
+    _all_function_calls_succeeded = false;
+    print_error(_current_test_name, "_run_sha256_sign_verify_test", "ndn_sha256_sign", ret_val);
   }
-  else {
-    sha256_sign_success = true;
-  }
-
+  
   ret_val = ndn_sha256_verify(test_message, sizeof(test_message), 
                             test_hash_buffer, hash_size);
   if (ret_val != 0) {
-    printf("ndn_sha256_verify failed, error code: %d\n", ret_val);
+    _all_function_calls_succeeded = false;
+    print_error(_current_test_name, "_run_sha256_sign_verify_test", "ndn_sha256_verify", ret_val);
   }
-  else {
-    sha256_verify_success = true;
-  }
-
-  if (sha256_sign_success && sha256_verify_success) {
+  
+  if (_all_function_calls_succeeded) {
     *test->passed = true;
   }
   else {

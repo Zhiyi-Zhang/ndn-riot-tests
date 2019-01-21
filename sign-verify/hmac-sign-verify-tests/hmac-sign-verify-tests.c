@@ -32,6 +32,9 @@ static const uint32_t test_arbitrary_key_id = 666;
 
 static uint8_t test_signature_buffer[TEST_SIGNATURE_BUFFER_LEN];
 
+static const char *_current_test_name;
+static bool _all_function_calls_succeeded = true;
+
 void _run_hmac_sign_verify_test(hmac_sign_verify_test_t *test);
 
 bool run_hmac_sign_verify_tests(void) {
@@ -45,10 +48,10 @@ bool run_hmac_sign_verify_tests(void) {
 
 void _run_hmac_sign_verify_test(hmac_sign_verify_test_t *test) {
 
-  ndn_security_init();
+  _current_test_name = test->test_names[test->test_name_index];
+  _all_function_calls_succeeded = true;
 
-  bool hmac_sign_success = false;
-  bool hmac_verify_success = false;
+  ndn_security_init();
 
   int ret_val = -1;
 
@@ -60,26 +63,23 @@ void _run_hmac_sign_verify_test(hmac_sign_verify_test_t *test) {
                 test_signature_buffer, sizeof(test_signature_buffer), 
                 &hmac_key, &signature_size);
   if (ret_val != 0) {
-    printf("ndn_hmac_sign failed, error code: %d\n", ret_val);
+    _all_function_calls_succeeded = false;
+    print_error(_current_test_name, "_run_hmac_sign_verify_test", "ndn_hmac_sign", ret_val);
   }
-  else {
-    hmac_sign_success = true;
-  }
-
+  
   ret_val = ndn_hmac_verify(test_message, sizeof(test_message), 
                             test_signature_buffer, signature_size, 
                             &hmac_key);
   if (ret_val != 0) {
-    printf("ndn_hmac_verify failed, error code: %d\n", ret_val);
-  }
-  else {
-    hmac_verify_success = true;
+    _all_function_calls_succeeded = false;
+    print_error(_current_test_name, "_run_hmac_sign_verify_test", "ndn_hmac_verify", ret_val);
   }
 
-  if (hmac_sign_success && hmac_verify_success) {
+  if (_all_function_calls_succeeded) {
     *test->passed = true;
   }
   else {
+    printf("One or more function calls in _run_hmac_sign_verify_test failed.\n");
     *test->passed = false;
   }
 }

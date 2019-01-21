@@ -12,39 +12,34 @@
 #include "ecdsa-sign-verify-tests.h"
 
 #include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 
 #include "ecdsa-sign-verify-tests-def.h"
 #include "../test-helpers.h"
 #include "../print-helpers.h"
 
-#include "../../../ndn-lite/encode/data.h"
-#include "../../../ndn-lite/encode/encoder.h"
-#include "../../../ndn-lite/encode/metainfo.h"
 #include "../../../ndn-lite/ndn-constants.h"
 #include "../../../ndn-lite/ndn-enums.h"
 #include "../../../ndn-lite/ndn-error-code.h"
 #include "../../../ndn-lite/security/ndn-lite-sec-utils.h"
+#include "../../../ndn-lite/security/ndn-lite-ecc.h"
 
 #define TEST_ENCODER_BUFFER_LEN 500
 #define TEST_NUM_NAME_COMPONENTS 5
 
-static uint8_t test_data_content[10] = {
+static uint8_t test_message[10] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
 
-static const char test_data_name_string[] = "/test/data";
-static const char test_producer_identity_string[] = "edward";
+static uint8_t test_signature[NDN_ASN1_ECDSA_MAX_ENCODED_SIG_SIZE];
+
 static const uint32_t test_arbitrary_key_id = 666;
 
-static name_component_t test_data_name_components[TEST_NUM_NAME_COMPONENTS];
-static name_component_t test_producer_identity_name_components[TEST_NUM_NAME_COMPONENTS];
-
-static uint8_t test_encoder_buffer[TEST_ENCODER_BUFFER_LEN];
-
-static ndn_encoder_t test_encoder;
-static ndn_data_t test_data;
-static ndn_name_t test_producer_identity;
 static ndn_ecc_prv_t test_ecc_prv_key;
 static ndn_ecc_pub_t test_ecc_pub_key;
+
+static const char *_current_test_name;
+static bool _all_function_calls_succeeded = true;
 
 void _run_ecdsa_sign_verify_test(ecdsa_sign_verify_test_t *test);
 
@@ -59,40 +54,52 @@ bool run_ecdsa_sign_verify_tests(void) {
 
 void _run_ecdsa_sign_verify_test(ecdsa_sign_verify_test_t *test) {
 
+  _current_test_name = test->test_names[test->test_name_index];
+  _all_function_calls_succeeded = true;
+  
   ndn_security_init();
 
   int ret_val = -1;
 
-  encoder_init(&test_encoder, test_encoder_buffer, TEST_ENCODER_BUFFER_LEN);
-
-  ndn_name_init(&test_data.name, test_data_name_components, TEST_NUM_NAME_COMPONENTS);
-  ndn_name_from_string(&test_data.name, test_data_name_string, sizeof(test_data_name_string));
-  ndn_metainfo_init(&test_data.metainfo);
-  ndn_data_set_content(&test_data, test_data_content, sizeof(test_data_content));
-
-  ndn_name_init(&test_producer_identity, test_producer_identity_name_components, TEST_NUM_NAME_COMPONENTS);
-  ndn_name_from_string(&test_producer_identity, test_producer_identity_string,
-      sizeof(test_producer_identity_string));
-
-  ndn_ecc_prv_init(&test_ecc_prv_key, test->ecc_prv_raw, test->ecc_prv_raw_len,
+  ret_val = ndn_ecc_prv_init(&test_ecc_prv_key, test->ecc_prv_raw, test->ecc_prv_raw_len,
       test->ndn_ecdsa_curve, test_arbitrary_key_id);
-
-  ret_val = ndn_data_tlv_encode_ecdsa_sign(&test_encoder, &test_data,
-      &test_producer_identity, &test_ecc_prv_key);
   if (ret_val != 0) {
-    printf("Failed to encode / ecdsa sign test ndn data packet.\n");
-    return;
+    print_error(_current_test_name, "_run_ecdsa_sign_verify_test", "ndn_ecc_prv_init", ret_val);
+    _all_function_calls_succeeded = false;
   }
 
-  ndn_ecc_pub_init(&test_ecc_pub_key, test->ecc_pub_raw, test->ecc_pub_raw_len,
+  uint32_t signature_size;
+  ret_val = ndn_ecdsa_sign(test_message, sizeof(test_message),
+			   test_signature, sizeof(test_signature),
+			   &test_ecc_prv_key,
+			   test->ndn_ecdsa_curve,
+			   &signature_size);
+  if (ret_val != 0) {
+    print_error(_current_test_name, "_run_ecdsa_sign_verify_test", "ndn_ecdsa_sign", ret_val);
+    _all_function_calls_succeeded = false;
+  }
+  
+  ret_val = ndn_ecc_pub_init(&test_ecc_pub_key, test->ecc_pub_raw, test->ecc_pub_raw_len,
       test->ndn_ecdsa_curve, test_arbitrary_key_id);
+  if (ret_val != 0) {
+    print_error(_current_test_name, "_run_ecdsa_sign_verify_test", "ndn_ecc_pub_init", ret_val);
+    _all_function_calls_succeeded = false;
+  }
 
-  ret_val = ndn_data_tlv_decode_ecdsa_verify(&test_data, test_encoder.output_value,
-      test_encoder.offset, &test_ecc_pub_key);
-  if (ret_val == 0) {
+  ret_val = ndn_ecdsa_verify(test_message, sizeof(test_message),
+			     test_signature, signature_size,
+			     &test_ecc_pub_key,
+			     test->ndn_ecdsa_curve);
+  if (ret_val != 0) {
+    print_error(_current_test_name, "_run_ecdsa_sign_verify_test", "ndn_ecdsa_verify", ret_val);
+    _all_function_calls_succeeded = false;
+  }
+
+  if (_all_function_calls_succeeded) {
     *test->passed = true;
   } else {
-    printf("Failed to verify signature of encoded data, error code: %d\n", ret_val);
+    printf("One or more function calls within _run_ecdsa_sign_verify_test failed.\n");
     *test->passed = false;
   }
+  
 }

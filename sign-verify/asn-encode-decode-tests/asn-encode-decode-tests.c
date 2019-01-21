@@ -22,6 +22,9 @@
 #include "../../../ndn-lite/security/ndn-lite-sec-config.h"
 #include "../../../ndn-lite/security/ndn-lite-sec-utils.h"
 
+static const char *_current_test_name;
+static bool _all_function_calls_succeeded = true;
+
 void _run_asn_encode_decode_test(asn_encode_decode_test_t *test);
 
 bool run_asn_encode_decode_tests(void) {
@@ -35,6 +38,9 @@ bool run_asn_encode_decode_tests(void) {
 
 void _run_asn_encode_decode_test(asn_encode_decode_test_t *test) {
 
+  _current_test_name = test->test_names[test->test_name_index];
+  _all_function_calls_succeeded = true;
+  
   ndn_security_init();
 
   char *test_name = test->test_names[test->test_name_index];
@@ -51,13 +57,13 @@ void _run_asn_encode_decode_test(asn_encode_decode_test_t *test) {
     if (asn1_encoded_sig_len == test->sig_asn_encoded_probe_length_expected) {
       test_sig_asn_encoding_size_probe = true;
     } else {
-      printf("Did not get expected value from ndn_asn1_probe_ecdsa_signature_encoding_size "
+      printf("In _run_asn_encode_decode_test, did not get expected value from ndn_asn1_probe_ecdsa_signature_encoding_size "
               "for %s. Expected %d, got %d\n",
           test_name, test->sig_asn_encoded_probe_length_expected,
           asn1_encoded_sig_len);
     }
   } else {
-    printf("Probing of %s ASN1 encoding length failed, error code: %d\n", test_name, ret_val);
+    print_error(_current_test_name, "_run_asn_encode_decode_test", "ndn_asn1_probe_ecdsa_signature_encoding_size", ret_val);
   }
   ret_val = ndn_asn1_encode_ecdsa_signature(test->sig, test->sig_len, test->sig_buf_len);
   if (ret_val == NDN_SUCCESS) {
@@ -65,7 +71,7 @@ void _run_asn_encode_decode_test(asn_encode_decode_test_t *test) {
         memcmp(test->sig, test->sig_asn_encoded_expected, asn1_encoded_sig_len) == 0) {
       test_sig_asn_encoding_success = true;
     } else {
-      printf("memcmp between %s after encoding and expected asn encoding didn't return 0, or\n"
+      printf("In _run_asn_encode_decode_test, memcmp between %s after encoding and expected asn encoding didn't return 0, or\n"
               "asn encoded signature length did not match expected asn encoded signature length.\n",
           test_name);
       print_hex("Value of asn encoded signature:", test->sig, asn1_encoded_sig_len);
@@ -75,7 +81,7 @@ void _run_asn_encode_decode_test(asn_encode_decode_test_t *test) {
           asn1_encoded_sig_len, test->sig_asn_encoded_expected_len);
     }
   } else {
-    printf("ASN1 encoding of %s failed, error code: %d\n", test_name, ret_val);
+    print_error(_current_test_name, "_run_asn_encode_decode_test", "ndn_asn1_encode_ecdsa_signature", ret_val);
   }
   ret_val = ndn_asn1_decode_ecdsa_signature(test->sig, asn1_encoded_sig_len, test->sig_decoded, test->sig_decoded_buf_len,
       &decoded_sig_len);
@@ -84,7 +90,7 @@ void _run_asn_encode_decode_test(asn_encode_decode_test_t *test) {
         memcmp(test->sig_decoded, test->sig_decoded_expected, decoded_sig_len) == 0) {
       test_sig_asn_decoding_success = true;
     } else {
-      printf("memcmp between decoded %s and expected decoded test signature didn't return 0, or\n"
+      printf("In _run_asn_encode_decode_test, memcmp between decoded %s and expected decoded test signature didn't return 0, or\n"
               "decoded signature length and expected decoded signature length did not match.\n",
           test_name);
       print_hex("Value of decoded signature:", test->sig_decoded, decoded_sig_len);
@@ -93,7 +99,7 @@ void _run_asn_encode_decode_test(asn_encode_decode_test_t *test) {
           decoded_sig_len, test->sig_decoded_expected_len);
     }
   } else {
-    printf("ASN1 decoding of %s failed, error code: %d\n", test_name, ret_val);
+    print_error(_current_test_name, "_run_asn_encode_decode_test", "ndn_asn1_decode_ecdsa_signature", ret_val);
   }
   if (test_sig_asn_encoding_size_probe &&
       test_sig_asn_encoding_success &&
