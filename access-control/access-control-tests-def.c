@@ -13,7 +13,7 @@
 
 #include "ndn-lite/ndn-enums.h"
 
-char *access_control_test_names[ACCESS_CONTROL_NUM_TESTS] = {
+xchar *access_control_test_names[ACCESS_CONTROL_NUM_TESTS] = {
   "test_access_control",
 };
 
