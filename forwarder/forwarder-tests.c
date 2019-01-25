@@ -52,9 +52,21 @@ on_data_callback(const uint8_t* data, uint32_t data_size)
   //printf("application receives a Data\n");
   ndn_data_t data_check;
   ndn_ecc_pub_t pub_key;
-  ndn_ecc_pub_init(&pub_key, _forwarder_test_raw_pub_key_arr, _forwarder_test_raw_pub_key_arr_len,
+  int result = ndn_ecc_pub_init(&pub_key, _forwarder_test_raw_pub_key_arr, _forwarder_test_raw_pub_key_arr_len,
 		   NDN_ECDSA_CURVE_SECP160R1, 1234);
-  int result = ndn_data_tlv_decode_ecdsa_verify(&data_check, data, data_size, &pub_key);
+  if (result != 0) {
+    print_error(_current_test_name, "on_data_callback", "ndn_ecc_pub_init", result);
+    _current_forwarder_test_all_calls_succeeded = false;
+  }
+
+  printf("Value of data in on_data_callback:\n");
+  for (uint32_t i = 0; i < data_size; i++) {
+    if (i > 0) printf(":");
+    printf("%02X", data[i]);
+  }
+  printf("\n");
+  
+  result = ndn_data_tlv_decode_ecdsa_verify(&data_check, data, data_size, &pub_key);
   if (result == 0) {
     _current_forwarder_test_app_received_data = true;
     _current_forwarder_test = NULL;
