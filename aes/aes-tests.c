@@ -1,12 +1,20 @@
 
+/*
+ * Copyright (C) 2018 Tianyuan Yu, Zhiyi Zhang, Edward Lu
+ *
+ * This file is subject to the terms and conditions of the GNU Lesser
+ * General Public License v2.1. See the file LICENSE in the top level
+ * directory for more details.
+ */
+
 #include "aes-tests.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #include "aes-tests-def.h"
-#include "print-helpers.h"
-#include "test-helpers.h"
+#include "../print-helpers.h"
+#include "../test-helpers.h"
 
 #include "ndn-lite/security/ndn-lite-aes.h"
 #include "shell.h"

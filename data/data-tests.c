@@ -1,11 +1,19 @@
 
+/*
+ * Copyright (C) 2018 Zhiyi Zhang, Tianyuan Yu, Edward Lu
+ *
+ * This file is subject to the terms and conditions of the GNU Lesser
+ * General Public License v2.1. See the file LICENSE in the top level
+ * directory for more details.
+ */
+
 #include "data-tests.h"
 
 #include <stdio.h>
 
 #include "data-tests-def.h"
-#include "print-helpers.h"
-#include "test-helpers.h"
+#include "../print-helpers.h"
+#include "../test-helpers.h"
 
 #include "ndn-lite/encode/data.h"
 #include "ndn-lite/security/ndn-lite-crypto-key.h"

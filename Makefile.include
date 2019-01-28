@@ -1,0 +1,14 @@
+INCLUDES += -I$(PKGDIRBASE)
+USEMODULE += access-control-tests
+USEMODULE += sign-verify-tests
+USEMODULE += aes-tests
+USEMODULE += forwarder-tests
+USEMODULE += random-tests
+USEMODULE += data-tests
+USEMODULE += interest-tests
+USEMODULE += name-encode-decode-tests
+USEMODULE += service-discovery-tests
+USEMODULE += fragmentation-support-tests
+USEMODULE += metainfo-tests
+USEMODULE += signature-tests
+USEMODULE += encoder-decoder-tests

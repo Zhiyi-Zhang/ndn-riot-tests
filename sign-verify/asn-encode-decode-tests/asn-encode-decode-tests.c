@@ -15,8 +15,8 @@
 #include <string.h>
 
 #include "asn-encode-decode-tests-def.h"
-#include "../test-helpers.h"
-#include "../print-helpers.h"
+#include "../../test-helpers.h"
+#include "../../print-helpers.h"
 
 #include "../../../ndn-lite/ndn-error-code.h"
 #include "../../../ndn-lite/security/ndn-lite-sec-config.h"

@@ -1,12 +1,10 @@
 
 /*
- * Copyright (C) Zhiyi Zhang, Tianyuan Yu, Edward Lu
+ * Copyright (C) 2018 Zhiyi Zhang, Tianyuan Yu, Edward
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
  * directory for more details.
- *
- * See AUTHORS.md for complete list of NDN IOT PKG authors and contributors.
  */
 
 #include "forwarder-tests.h"
@@ -17,8 +15,8 @@
 #include <errno.h>
 
 #include "forwarder-tests-def.h"
-#include "test-helpers.h"
-#include "print-helpers.h"
+#include "../test-helpers.h"
+#include "../print-helpers.h"
 
 #include "ndn-lite/ndn-constants.h"
 #include "ndn-lite/encode/interest.h"

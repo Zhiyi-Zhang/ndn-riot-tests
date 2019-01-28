@@ -16,8 +16,8 @@
 #include <stdbool.h>
 
 #include "sha256-sign-verify-tests-def.h"
-#include "../test-helpers.h"
-#include "../print-helpers.h"
+#include "../../test-helpers.h"
+#include "../../print-helpers.h"
 
 #include "../../../ndn-lite/ndn-constants.h"
 #include "../../../ndn-lite/ndn-error-code.h"

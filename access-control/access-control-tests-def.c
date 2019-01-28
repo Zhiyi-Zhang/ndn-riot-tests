@@ -1,6 +1,6 @@
 
 /*
- * Copyright (C) Edward Lu
+ * Copyright (C) Tianyuan Yu, Zhiyi Zhang, Edward Lu
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -13,7 +13,7 @@
 
 #include "ndn-lite/ndn-enums.h"
 
-xchar *access_control_test_names[ACCESS_CONTROL_NUM_TESTS] = {
+char *access_control_test_names[ACCESS_CONTROL_NUM_TESTS] = {
   "test_access_control",
 };
 
@@ -23,11 +23,16 @@ access_control_test_t access_control_tests[ACCESS_CONTROL_NUM_TESTS] = {
     {
       access_control_test_names,
       0,
+      NDN_ECDSA_CURVE_SECP256R1,
+      access_control_test_ecc_secp256r1_pub_raw_1,
+      sizeof(access_control_test_ecc_secp256r1_pub_raw_1),
+      access_control_test_ecc_secp256r1_prv_raw_1,
+      sizeof(access_control_test_ecc_secp256r1_prv_raw_1),
       &access_control_test_results[0]
     },
 };
 
-const uint8_t test_ecc_secp256r1_prv_raw_1[SECP256R1_PRI_KEY_SIZE] =
+const uint8_t access_control_test_ecc_secp256r1_prv_raw_1[SECP256R1_PRI_KEY_SIZE] =
 {
     0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 
     0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,
@@ -35,7 +40,7 @@ const uint8_t test_ecc_secp256r1_prv_raw_1[SECP256R1_PRI_KEY_SIZE] =
     0x11, 0x11,
 };
 
-const uint8_t test_ecc_secp256r1_pub_raw_1[SECP256R1_PUB_KEY_SIZE] =
+const uint8_t access_control_test_ecc_secp256r1_pub_raw_1[SECP256R1_PUB_KEY_SIZE] =
 {
     0x02, 0x17, 0xE6, 0x17, 0xF0, 0xB6, 0x44, 0x39, 0x28, 0x27, 
     0x8F, 0x96, 0x99, 0x9E, 0x69, 0xA2, 0x3A, 0x4F, 0x2C, 0x15, 

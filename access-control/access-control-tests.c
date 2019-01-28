@@ -12,8 +12,8 @@
 #include "access-control-tests.h"
 
 #include "access-control-tests-def.h"
-#include "print-helpers.h"
-#include "test-helpers.h"
+#include "../print-helpers.h"
+#include "../test-helpers.h"
 
 #include <stdio.h>
 #include "ndn-lite/ndn-enums.h"
@@ -22,6 +22,8 @@
 #include "ndn-lite/security/ndn-lite-ecc.h"
 #include "ndn-lite/security/ndn-lite-hmac.h"
 #include "ndn-lite/encode/key-storage.h"
+
+static const uint32_t access_control_test_arbitrary_key_id = 666;
 
 static const char *_current_test_name;
 static bool _all_function_calls_succeeded = true;
@@ -62,14 +64,14 @@ void _run_access_control_test(access_control_test_t *test) {
   ndn_ecc_pub_t* pub_key = NULL;
   ndn_ecc_prv_t* prv_key = NULL;
   ndn_key_storage_get_empty_ecc_key(&pub_key, &prv_key);
-  ret_val = ndn_ecc_pub_init(pub_key, test_ecc_secp256r1_pub_raw_1, sizeof(test_ecc_secp256r1_pub_raw_1),
-			     NDN_ECDSA_CURVE_SECP256R1, test_arbitrary_key_id);
+  ret_val = ndn_ecc_pub_init(pub_key, test->ecc_pub_key_val, test->ecc_pub_key_len,
+			     test->ndn_ecdsa_curve, access_control_test_arbitrary_key_id);
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_access_control_test", "ndn_ecc_pub_init", ret_val);
     _all_function_calls_succeeded = false;
   }
-  ret_val = ndn_ecc_prv_init(prv_key, test_ecc_secp256r1_prv_raw_1, sizeof(test_ecc_secp256r1_prv_raw_1),
-			     NDN_ECDSA_CURVE_SECP256R1, test_arbitrary_key_id);
+  ret_val = ndn_ecc_prv_init(prv_key, test->ecc_prv_key_val, test->ecc_prv_key_len,
+			     test->ndn_ecdsa_curve, access_control_test_arbitrary_key_id);
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_access_control_test", "ndn_ecc_prv_init", ret_val);
     _all_function_calls_succeeded = false;

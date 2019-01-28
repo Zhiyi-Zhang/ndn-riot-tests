@@ -1,4 +1,12 @@
 
+/*
+ * Copyright (C) 2018 Zhiyi Zhang, Tianyuan Yu, Edward Lu
+ *
+ * This file is subject to the terms and conditions of the GNU Lesser
+ * General Public License v2.1. See the file LICENSE in the top level
+ * directory for more details.
+ */
+
 #ifndef DATA_TESTS_DEF_H
 #define DATA_TESTS_DEF_H
 

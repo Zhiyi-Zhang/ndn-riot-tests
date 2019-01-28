@@ -1,6 +1,6 @@
 
 /*
- * Copyright (C) Edward Lu
+ * Copyright (C) Tianyuan Yu, Zhiyi Zhang, Edward Lu
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -28,10 +28,8 @@ extern bool access_control_test_results[ACCESS_CONTROL_NUM_TESTS];
 
 extern access_control_test_t access_control_tests[ACCESS_CONTROL_NUM_TESTS];
 
-extern const uint8_t test_ecc_secp256r1_prv_raw_1[SECP256R1_PRI_KEY_SIZE];
+extern const uint8_t access_control_test_ecc_secp256r1_prv_raw_1[SECP256R1_PRI_KEY_SIZE];
 
-extern const uint8_t test_ecc_secp256r1_pub_raw_1[SECP256R1_PUB_KEY_SIZE];
-
-static const uint32_t test_arbitrary_key_id = 666;
+extern const uint8_t access_control_test_ecc_secp256r1_pub_raw_1[SECP256R1_PUB_KEY_SIZE];
 
 #endif // ACCESS_CONTROL_TESTS_DEF_H
