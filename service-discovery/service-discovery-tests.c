@@ -164,12 +164,7 @@ void _run_service_discovery_test(service_discovery_test_t *test) {
 
   printf("*** Query *** \n");
   ndn_sd_prepare_query(&interest, &entry->identity, &entry->services[0],
-                       NULL, 0);
-  ret_val = ndn_interest_tlv_encode(&encoder, &interest);
-  if (ret_val != 0) {
-    print_error(_current_test_name, "_run_service_discovery_test", "ndn_interest_tlv_encode", ret_val);
-    _all_function_calls_succeeded = false;
-  }
+                       NULL, 0);  
   printf("First Query Prepare Success, query service: ");
   for (uint8_t i = 0; i < entry->services[0].id_size; i++)
     printf("%c", (char)entry->services[0].id_value[i]);
@@ -184,12 +179,14 @@ void _run_service_discovery_test(service_discovery_test_t *test) {
     print_error(_current_test_name, "_run_service_discovery_test", "ndn_interest_tlv_encode", ret_val);
     _all_function_calls_succeeded = false;
   }
+  
   printf("Value of first service discovery query interest, encoded:\n");
   for (uint32_t i = 0; i < encoder.offset; i++) {
     if (i > 0) printf(":");
     printf("%02X", encoder.output_value[i]);
   }
   printf("\n");
+  
   printf("First Query Signed\n");
   ret_val = ndn_interest_from_block(&interest, buffer, encoder.offset);
   if (ret_val != 0) {

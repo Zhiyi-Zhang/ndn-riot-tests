@@ -1,0 +1,18 @@
+
+#include <stdio.h>
+
+#include "interest-tests.h"
+
+int main(void)
+{
+  if
+  (
+   run_interest_tests()
+  )
+  {
+    printf("ALL INTEREST TESTS SUCCEEDED\n");
+  }
+  else {
+    printf("ONE OR MORE INTEREST TESTS FAILED\n");
+  }
+}

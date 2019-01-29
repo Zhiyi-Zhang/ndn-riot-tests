@@ -57,12 +57,12 @@ on_data_callback(const uint8_t* data, uint32_t data_size)
     _current_forwarder_test_all_calls_succeeded = false;
   }
 
-  printf("Value of data in on_data_callback:\n");
-  for (uint32_t i = 0; i < data_size; i++) {
-    if (i > 0) printf(":");
-    printf("%02X", data[i]);
-  }
-  printf("\n");
+  /* printf("Value of data in on_data_callback:\n"); */
+  /* for (uint32_t i = 0; i < data_size; i++) { */
+  /*   if (i > 0) printf(":"); */
+  /*   printf("%02X", data[i]); */
+  /* } */
+  /* printf("\n"); */
   
   result = ndn_data_tlv_decode_ecdsa_verify(&data_check, data, data_size, &pub_key);
   if (result == 0) {

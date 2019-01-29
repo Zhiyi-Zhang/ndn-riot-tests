@@ -140,6 +140,13 @@ void _run_access_control_test(access_control_test_t *test) {
     print_error(_current_test_name, "_run_access_control_test", "ndn_ac_prepare_key_request", ret_val);
     _all_function_calls_succeeded = false;
   }
+
+  /* printf("In _run_access_control_test, value of generated ac key request interest:\n"); */
+  /* for (uint32_t i = 0; i < encoder.offset; i++) { */
+  /*   if (i > 0) printf(":"); */
+  /*   printf("%02X", encoder.output_value[i]); */
+  /* } */
+  /* printf("\n"); */
   
   // controller
   // set id and key
@@ -170,12 +177,12 @@ void _run_access_control_test(access_control_test_t *test) {
     _all_function_calls_succeeded = false;
   }
 
-  printf("In access control test, value of encoded data:\n");
-  for (uint32_t i = 0; i < encoder.offset; i++) {
-    if (i > 0) printf(":");
-    printf("%02X", encoder.output_value[i]);
-  }
-  printf("\n");
+  /* printf("In access control test, value of encoded data:\n"); */
+  /* for (uint32_t i = 0; i < encoder.offset; i++) { */
+  /*   if (i > 0) printf(":"); */
+  /*   printf("%02X", encoder.output_value[i]); */
+  /* } */
+  /* printf("\n"); */
   
   //printf("EK Response TLV size is = %d\n", encoder.offset);
   ret_val = ndn_data_tlv_decode_ecdsa_verify(&response, buffer, encoder.offset,
@@ -239,7 +246,6 @@ void _run_access_control_test(access_control_test_t *test) {
     *test->passed = true;
   }
   else {
-    printf("In _run_access_control_test, one or more function calls failed.\n");
     *test->passed = false;
   }
 }
