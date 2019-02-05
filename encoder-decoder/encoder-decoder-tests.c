@@ -108,7 +108,7 @@ void _run_encoder_decoder_test(encoder_decoder_test_t *test) {
   }
 
   if (check_length != sizeof(buf)) {
-    printf("In _run_encoder_decoder_test, got wrong length after enoding and decoding. Expected length was %d, got %d.\n", sizeof(buf), check_length);
+    printf("In _run_encoder_decoder_test, got wrong length after enoding and decoding. Expected length was %lu, got %d.\n", sizeof(buf), check_length);
   }
   else {
     _length_check_succeeded = true;

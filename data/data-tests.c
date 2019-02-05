@@ -239,7 +239,7 @@ void _run_data_test(data_test_t *test) {
     _all_function_calls_succeeded = false;
   }
 
-  if (memcmp(data.content_value, buf, data.content_size != 0)) {
+  if (memcmp(data.content_value, buf, data.content_size) != 0) {
     _encrypted_text_different_from_original_text = true;
   }
 
