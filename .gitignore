@@ -1,5 +1,6 @@
 .DS*
 */.DS*
+bin
 */bin
 */*/bin
 */*/*/bin
