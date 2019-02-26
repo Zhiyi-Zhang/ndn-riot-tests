@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2018 Zhiyi Zhang, Edward Lu
  *
@@ -8,13 +7,10 @@
  */
 
 #include "encoder-decoder-tests.h"
-
 #include <stdio.h>
-
 #include "encoder-decoder-tests-def.h"
 #include "../print-helpers.h"
 #include "../test-helpers.h"
-
 #include "ndn-lite/encode/encoder.h"
 #include "ndn-lite/encode/decoder.h"
 #include "shell.h"
@@ -32,13 +28,13 @@ bool run_encoder_decoder_tests(void) {
   for (int i = 0; i < ENCODER_DECODER_NUM_TESTS; i++) {
     _run_encoder_decoder_test(&encoder_decoder_tests[i]);
   }
-  
+
   return check_all_tests_passed(encoder_decoder_test_results, encoder_decoder_test_names,
                                 ENCODER_DECODER_NUM_TESTS);
 }
 
-void _run_encoder_decoder_test(encoder_decoder_test_t *test) {
-  
+void _run_encoder_decoder_test(encoder_decoder_test_t *test)
+{
   _current_test_name = test->test_names[test->test_name_index];
   _all_function_calls_succeeded = true;
 
@@ -68,11 +64,6 @@ void _run_encoder_decoder_test(encoder_decoder_test_t *test) {
     print_error(_current_test_name, "_run_encoder_decoder_test", "encoder_append_raw_buffer", ret_val);
     _all_function_calls_succeeded = false;
   }
-  /* printf("\n***encoder encoding***\n"); */
-  /* printf("block content: \n"); */
-  /* for (size_t i = 0; i < encoder.offset; i++) { */
-  /*   printf("%d ", encoder.output_value[i]); */
-  /* } */
 
   ndn_decoder_t decoder;
   decoder_init(&decoder, block_value, block_size);
@@ -82,7 +73,7 @@ void _run_encoder_decoder_test(encoder_decoder_test_t *test) {
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_encoder_decoder_test", "decoder_get_type", ret_val);
     _all_function_calls_succeeded = false;
-  }  
+  }
   ret_val = decoder_get_type(&decoder, &check_length);
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_encoder_decoder_test", "decoder_get_type", ret_val);
@@ -95,36 +86,29 @@ void _run_encoder_decoder_test(encoder_decoder_test_t *test) {
     _all_function_calls_succeeded = false;
   }
 
-  /* printf("\n***decoder decoding***\n"); */
-  /* printf("check type %d\n", check_type); */
-  /* printf("check length %d\n", check_length); */
-
   if (check_type != type) {
-    printf("In _run_encoder_decoder_test, got wrong type after encoding and decoding. Expected type was %d, got %d.\n", type, check_type);
-    
+    printf("In _run_encoder_decoder_test, got wrong type after encoding and decoding. Expected type was %d, got %d.\n",
+           type, check_type);
   }
   else {
     _type_check_succeeded = true;
   }
 
   if (check_length != sizeof(buf)) {
-    printf("In _run_encoder_decoder_test, got wrong length after enoding and decoding. Expected length was %u, got %d.\n", sizeof(buf), check_length);
+    printf("In _run_encoder_decoder_test, got wrong length after enoding and decoding. Expected length was %d, got %d.\n",
+           (int) sizeof(buf), check_length);
   }
   else {
     _length_check_succeeded = true;
   }
-  
-  // printf("\nTest END\n");  
 
   if (_all_function_calls_succeeded &&
       _type_check_succeeded &&
-      _length_check_succeeded)
-  {
+      _length_check_succeeded) {
     *test->passed = true;
   }
   else {
     printf("In _run_encoder_decoder_test, something went wrong.\n");
     *test->passed = false;
   }
-  
 }
