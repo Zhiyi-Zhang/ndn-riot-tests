@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2018 Tianyuan Yu, Zhiyi Zhang, Edward Lu
  *
@@ -8,14 +7,10 @@
  */
 
 #include "service-discovery-tests.h"
-
 #include <stdio.h>
-
 #include "service-discovery-tests-def.h"
 #include "../print-helpers.h"
 #include "../test-helpers.h"
-
-#include <stdio.h>
 #include "ndn-lite/security/ndn-lite-crypto-key.h"
 #include "ndn-lite/app-support/service-discovery.h"
 #include "ndn-lite/encode/signed-interest.h"
@@ -33,23 +28,20 @@ bool run_service_discovery_tests(void) {
   for (int i = 0; i < SERVICE_DISCOVERY_NUM_TESTS; i++) {
     _run_service_discovery_test(&service_discovery_tests[i]);
   }
-  
+
   return check_all_tests_passed(service_discovery_test_results, service_discovery_test_names,
                                 SERVICE_DISCOVERY_NUM_TESTS);
 }
 
 void _run_service_discovery_test(service_discovery_test_t *test) {
-  
+
   _current_test_name = test->test_names[test->test_name_index];
   _all_function_calls_succeeded = true;
-  
+
   int ret_val = -1;
-  
+
   // tests start
   ndn_security_init();
-
-  /* start shell */
-  puts("All up, running the shell now");
 
   // intiate private and public key
   ndn_encoder_t encoder;
@@ -93,9 +85,9 @@ void _run_service_discovery_test(service_discovery_test_t *test) {
   // intialization
   ndn_sd_init(&home_prefix, &component_producer);
   ndn_service_t* control_service = ndn_sd_register_get_self_service(NDN_SD_CONTROL,
-								    sizeof(NDN_SD_CONTROL));
+                                                                    sizeof(NDN_SD_CONTROL));
   ndn_service_t* led_service = ndn_sd_register_get_self_service(NDN_SD_LED,
-								sizeof(NDN_SD_LED));
+                                                                sizeof(NDN_SD_LED));
 
   // set service status
   ndn_sd_set_service_status(led_service, NDN_APPSUPPORT_SERVICE_BUSY);
@@ -164,7 +156,7 @@ void _run_service_discovery_test(service_discovery_test_t *test) {
 
   printf("*** Query *** \n");
   ndn_sd_prepare_query(&interest, &entry->identity, &entry->services[0],
-                       NULL, 0);  
+                       NULL, 0);
   printf("First Query Prepare Success, query service: ");
   for (uint8_t i = 0; i < entry->services[0].id_size; i++)
     printf("%c", (char)entry->services[0].id_value[i]);
@@ -179,14 +171,14 @@ void _run_service_discovery_test(service_discovery_test_t *test) {
     print_error(_current_test_name, "_run_service_discovery_test", "ndn_interest_tlv_encode", ret_val);
     _all_function_calls_succeeded = false;
   }
-  
+
   printf("Value of first service discovery query interest, encoded:\n");
   for (uint32_t i = 0; i < encoder.offset; i++) {
     if (i > 0) printf(":");
     printf("%02X", encoder.output_value[i]);
   }
   printf("\n");
-  
+
   printf("First Query Signed\n");
   ret_val = ndn_interest_from_block(&interest, buffer, encoder.offset);
   if (ret_val != 0) {
@@ -277,8 +269,8 @@ void _run_service_discovery_test(service_discovery_test_t *test) {
     _all_function_calls_succeeded = false;
   }
   printf("Second Response Processing Success\n");
-  printf("Second Service Status via Query = %d\n", entry->services[1].status);  
-  
+  printf("Second Service Status via Query = %d\n", entry->services[1].status);
+
   if (_all_function_calls_succeeded)
   {
     *test->passed = true;
@@ -287,5 +279,4 @@ void _run_service_discovery_test(service_discovery_test_t *test) {
     printf("In _run_service_discovery_test, something went wrong.\n");
     *test->passed = false;
   }
-  
 }

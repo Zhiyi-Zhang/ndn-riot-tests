@@ -13,8 +13,6 @@
 #include "../test-helpers.h"
 #include "ndn-lite/encode/encoder.h"
 #include "ndn-lite/encode/decoder.h"
-#include "shell.h"
-#include "msg.h"
 
 static const char *_current_test_name;
 static bool _all_function_calls_succeeded = true;
@@ -40,7 +38,6 @@ void _run_encoder_decoder_test(encoder_decoder_test_t *test)
 
   int ret_val = -1;
 
-  /* start shell */
   uint8_t buf[10] = {2,2,2,2,2,2,2,2,2,2};
   uint32_t type = 100;
 
@@ -61,7 +58,8 @@ void _run_encoder_decoder_test(encoder_decoder_test_t *test)
   }
   ret_val = encoder_append_raw_buffer_value(&encoder, buf, sizeof(buf));
   if (ret_val != 0) {
-    print_error(_current_test_name, "_run_encoder_decoder_test", "encoder_append_raw_buffer", ret_val);
+    print_error(_current_test_name, "_run_encoder_decoder_test", "encoder_append_raw_buffer",
+                ret_val);
     _all_function_calls_succeeded = false;
   }
 

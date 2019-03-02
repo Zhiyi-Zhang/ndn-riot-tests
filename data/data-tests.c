@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2018 Zhiyi Zhang, Tianyuan Yu, Edward Lu
  *
@@ -8,18 +7,12 @@
  */
 
 #include "data-tests.h"
-
 #include <stdio.h>
-
 #include "data-tests-def.h"
 #include "../print-helpers.h"
 #include "../test-helpers.h"
-
 #include "ndn-lite/encode/data.h"
 #include "ndn-lite/security/ndn-lite-crypto-key.h"
-#include "shell.h"
-#include "msg.h"
-
 
 static const char *_current_test_name;
 static bool _all_function_calls_succeeded = true;
@@ -33,34 +26,34 @@ bool run_data_tests(void) {
   for (int i = 0; i < DATA_NUM_TESTS; i++) {
     _run_data_test(&data_tests[i]);
   }
-  
+
   return check_all_tests_passed(data_test_results, data_test_names,
                                 DATA_NUM_TESTS);
 }
 
 void _run_data_test(data_test_t *test) {
-  
+
   _current_test_name = test->test_names[test->test_name_index];
   _all_function_calls_succeeded = true;
 
   int ndn_ecdsa_curve = test->ndn_ecdsa_curve;
-  
+
   int ret_val = -1;
-  
+
   // tests start
   ndn_security_init();
 
   uint8_t buf[16] = {2,2,2,2,2,2,2,2,2,2};
   uint8_t block_value[1024];
   ndn_encoder_t encoder;
- 
+
   ndn_data_t data;
   ret_val = ndn_data_set_content(&data, buf, sizeof(buf));
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_data_test", "ndn_data_set_content", ret_val);
     _all_function_calls_succeeded = false;
   }
-  
+
   // set name
   char name_string[] = "/smarthome/controller/zhiyi-phone";
   ret_val = ndn_name_from_string(&data.name, name_string, sizeof(name_string));
@@ -124,7 +117,7 @@ void _run_data_test(data_test_t *test) {
 
   const uint8_t *prv_key_raw = test->ecc_prv_key;
   uint32_t prv_key_raw_size = test->ecc_prv_key_size;
-  
+
   // encoding ecdsa
   ndn_ecc_prv_t prv_key;
   ret_val = ndn_ecc_prv_init(&prv_key, prv_key_raw, prv_key_raw_size, ndn_ecdsa_curve, 1234);
@@ -167,7 +160,7 @@ void _run_data_test(data_test_t *test) {
 
   const uint8_t *public = test->ecc_pub_key;
   uint32_t pub_size = test->ecc_pub_key_size;
-  
+
   ndn_ecc_pub_t pub_key;
   ret_val = ndn_ecc_pub_init(&pub_key, public, pub_size, ndn_ecdsa_curve, 1234);
   if (ret_val != 0) {
@@ -179,7 +172,7 @@ void _run_data_test(data_test_t *test) {
     print_error(_current_test_name, "_run_data_test", "ndn_data_tlv_decode_ecdsa_verify", ret_val);
     _all_function_calls_succeeded = false;
   }
-  
+
   // encoding hmac
   ndn_hmac_key_t hmac_key;
   ret_val = ndn_hmac_key_init(&hmac_key, prv_key_raw, prv_key_raw_size, 5678);
@@ -195,12 +188,12 @@ void _run_data_test(data_test_t *test) {
 
   encoder_init(&encoder, block_value, 1024);
   //printf("\n***data encoding with hmac sig***\n");
-  ret_val = ndn_data_tlv_encode_hmac_sign(&encoder, &data, &identity, &hmac_key); 
+  ret_val = ndn_data_tlv_encode_hmac_sign(&encoder, &data, &identity, &hmac_key);
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_data_test", "ndn_data_tlv_encode_hmac_sign", ret_val);
     _all_function_calls_succeeded = false;
   }
- 
+
   /* printf("data block length: %d \n", (int) encoder.offset); */
   /* printf("data block content: \n"); */
   /* for (size_t i = 0; i < encoder.offset; i++) { */
@@ -216,7 +209,7 @@ void _run_data_test(data_test_t *test) {
 
   const uint8_t *aes_key_raw = test->aes_key;
   uint32_t aes_key_raw_size = test->aes_key_size;
-  
+
   // Encrypted Data
   //printf("\n***Encrypted Data Tests*** \n");
   ndn_aes_key_t aes;
@@ -284,5 +277,5 @@ void _run_data_test(data_test_t *test) {
     printf("In _run_data_test, something went wrong.\n");
     *test->passed = false;
   }
-  
+
 }

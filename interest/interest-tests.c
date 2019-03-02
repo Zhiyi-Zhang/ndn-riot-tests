@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2018 Zhiyi Zhang, Tianyuan Yu, Edward Lu
  *
@@ -8,17 +7,12 @@
  */
 
 #include "interest-tests.h"
-
 #include <stdio.h>
 #include <stdbool.h>
-
 #include "interest-tests-def.h"
 #include "../print-helpers.h"
 #include "../test-helpers.h"
-
 #include "ndn-lite/encode/signed-interest.h"
-#include "shell.h"
-#include "msg.h"
 
 static const char *_current_test_name;
 static bool _all_function_calls_succeeded = true;
@@ -30,7 +24,7 @@ bool run_interest_tests(void) {
   for (int i = 0; i < INTEREST_NUM_TESTS; i++) {
     _run_interest_test(&interest_tests[i]);
   }
-  
+
   return check_all_tests_passed(interest_test_results, interest_test_names,
                                 INTEREST_NUM_TESTS);
 }
@@ -41,12 +35,12 @@ void _test_hmac_signed_interest(ndn_name_t *name, ndn_name_t *identity, interest
 void _test_digest_signed_interest(ndn_name_t *name);
 
 void _run_interest_test(interest_test_t *test) {
-  
+
   _current_test_name = test->test_names[test->test_name_index];
   _all_function_calls_succeeded = true;
-  
+
   int ret_val = -1;
-  
+
   // tests start
   ndn_security_init();
 
@@ -87,7 +81,7 @@ void _run_interest_test(interest_test_t *test) {
   _test_ecdsa_signed_interest(&name, &identity, test);
   _test_hmac_signed_interest(&name, &identity, test);
   _test_digest_signed_interest(&name);
-  
+
   if (_all_function_calls_succeeded)
   {
     *test->passed = true;
@@ -96,14 +90,14 @@ void _run_interest_test(interest_test_t *test) {
     printf("In _run_interest_test, something went wrong.\n");
     *test->passed = false;
   }
-  
+
 }
 
 void _test_unsigned_interest(ndn_name_t* name)
 {
 
   int ret_val = -1;
-  
+
   // init an Interest
   ndn_interest_t interest;
   ndn_interest_from_name(&interest, name);
@@ -137,7 +131,7 @@ void _test_unsigned_interest(ndn_name_t* name)
   if (ret_val != 0) {
     print_error(_current_test_name, "_test_unsigned_interest", "ndn_interest_from_block", ret_val);
     _all_function_calls_succeeded = false;
-  }  
+  }
   printf("***Interest Decodes*** \n");
   printf("hop limit: %d\n", interest.hop_limit);
   printf("name component size: %d\n", (int) check_interest.name.components_size);
@@ -154,7 +148,7 @@ void _test_ecdsa_signed_interest(ndn_name_t* name, ndn_name_t* identity, interes
 {
 
   int ret_val = -1;
-  
+
   putchar('\n');
   ndn_interest_t interest;
   ndn_interest_from_name(&interest, name);
@@ -215,7 +209,7 @@ void _test_hmac_signed_interest(ndn_name_t* name, ndn_name_t* identity, interest
 {
 
   int ret_val = -1;
-  
+
   putchar('\n');
   ndn_interest_t interest;
   ndn_interest_from_name(&interest, name);

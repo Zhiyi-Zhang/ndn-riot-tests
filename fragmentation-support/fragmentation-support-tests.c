@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2018 Zhiyi Zhang, Tianyuan Yu, Edward Lu
  *
@@ -8,17 +7,12 @@
  */
 
 #include "fragmentation-support-tests.h"
-
-#include <stdio.h>
-#include <string.h>
-
 #include "fragmentation-support-tests-def.h"
 #include "../print-helpers.h"
 #include "../test-helpers.h"
-
 #include "ndn-lite/encode/fragmentation-support.h"
-#include "shell.h"
-#include "msg.h"
+#include <stdio.h>
+#include <string.h>
 
 static const char *_current_test_name;
 static bool _all_function_calls_succeeded = true;
@@ -30,21 +24,21 @@ bool run_fragmentation_support_tests(void) {
   for (int i = 0; i < FRAGMENTATION_SUPPORT_NUM_TESTS; i++) {
     _run_fragmentation_support_test(&fragmentation_support_tests[i]);
   }
-  
+
   return check_all_tests_passed(fragmentation_support_test_results, fragmentation_support_test_names,
                                 FRAGMENTATION_SUPPORT_NUM_TESTS);
 }
 
 void _run_fragmentation_support_test(fragmentation_support_test_t *test) {
-  
+
   _current_test_name = test->test_names[test->test_name_index];
   _all_function_calls_succeeded = true;
-  
+
   int ret_val = -1;
 
   const uint8_t *payload = test->payload;
   uint32_t payload_size = test->payload_size;
-  
+
   ndn_fragmenter_t fragmenter;
   ndn_fragmenter_init(&fragmenter, payload, payload_size, 16, 123);
   //printf("total frag pkt num: %d\n", fragmenter.total_frag_num);
@@ -92,5 +86,5 @@ void _run_fragmentation_support_test(fragmentation_support_test_t *test) {
     printf("In _run_fragmentation_support_test, something went wrong.\n");
     *test->passed = false;
   }
-  
+
 }

@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2018 Zhiyi Zhang, Tianyuan Yu, Edward Lu
  *
@@ -8,18 +7,13 @@
  */
 
 #include "signature-tests.h"
-
 #include <stdio.h>
-
 #include "signature-tests-def.h"
 #include "../print-helpers.h"
 #include "../test-helpers.h"
-
 #include "ndn-lite/encode/name.h"
 #include "ndn-lite/encode/signature.h"
 #include "ndn-lite/security/ndn-lite-sec-config.h"
-#include "shell.h"
-#include "msg.h"
 
 static const char *_current_test_name;
 static bool _all_function_calls_succeeded = true;
@@ -31,16 +25,16 @@ bool run_signature_tests(void) {
   for (int i = 0; i < SIGNATURE_NUM_TESTS; i++) {
     _run_signature_test(&signature_tests[i]);
   }
-  
+
   return check_all_tests_passed(signature_test_results, signature_test_names,
                                 SIGNATURE_NUM_TESTS);
 }
 
 void _run_signature_test(signature_test_t *test) {
-  
+
   _current_test_name = test->test_names[test->test_name_index];
   _all_function_calls_succeeded = true;
- 
+
   int ret_val = -1;
 
   ndn_security_init();
@@ -69,7 +63,7 @@ void _run_signature_test(signature_test_t *test) {
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_signature_test", "ndn_signature_init", ret_val);
     _all_function_calls_succeeded = false;
-  }  
+  }
   ret_val = ndn_signature_set_signature_type(&signature1, NDN_SIG_TYPE_ECDSA_SHA256);
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_signature_test", "ndn_signature_set_signature_type", ret_val);
@@ -93,7 +87,7 @@ void _run_signature_test(signature_test_t *test) {
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_signature_test", "ndn_signature_info_tlv_encode", ret_val);
     _all_function_calls_succeeded = false;
-  }  
+  }
   printf("***signature info encoding***\n");
   printf("signature info block size: %d\n", (int) sig1_info_block_size);
   printf("signature info block content: \n");
@@ -168,8 +162,8 @@ void _run_signature_test(signature_test_t *test) {
   printf("signature value: \n");
   for (size_t i = 0; i < signature1_check.sig_size; i++) {
     printf("%d ", signature1_check.sig_value[i]);
-  }  
-  
+  }
+
   if (_all_function_calls_succeeded)
   {
     *test->passed = true;
@@ -178,5 +172,5 @@ void _run_signature_test(signature_test_t *test) {
     printf("In _run_signature_test, something went wrong.\n");
     *test->passed = false;
   }
-  
+
 }

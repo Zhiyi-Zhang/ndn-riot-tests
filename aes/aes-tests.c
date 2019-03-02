@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2018 Tianyuan Yu, Zhiyi Zhang, Edward Lu
  *
@@ -8,17 +7,12 @@
  */
 
 #include "aes-tests.h"
-
 #include <stdio.h>
 #include <string.h>
-
 #include "aes-tests-def.h"
 #include "../print-helpers.h"
 #include "../test-helpers.h"
-
 #include "ndn-lite/security/ndn-lite-aes.h"
-#include "shell.h"
-#include "msg.h"
 
 #define PLAIN_TEXT_BUFFER_MAX_SIZE 255
 
@@ -40,18 +34,18 @@ bool run_aes_tests(void) {
   for (int i = 0; i < AES_NUM_TESTS; i++) {
     _run_aes_test(&aes_tests[i]);
   }
-  
+
   return check_all_tests_passed(aes_test_results, aes_test_names,
                                 AES_NUM_TESTS);
 }
 
 void _run_aes_test(aes_test_t *test) {
-  
+
   _current_test_name = test->test_names[test->test_name_index];
   _all_function_calls_succeeded = true;
 
   int ret_val = -1;
-  
+
   // tests start
   ndn_security_init();
 
@@ -63,7 +57,7 @@ void _run_aes_test(aes_test_t *test) {
   const uint8_t *key = test->key;
   uint32_t key_size = test->key_size;
   const uint8_t *iv = test->iv;
-  
+
   //initialize
   /* uint32_t j = 0; */
   /* printf("print raw data\n"); */
@@ -95,9 +89,8 @@ void _run_aes_test(aes_test_t *test) {
   else {
     printf("In _run_aes_test, the encrypted text was the same as the original text.\n");
   }
-  
-  ret_val = ndn_aes_cbc_decrypt(cipher_text, cipher_text_size, plain_text, data_size,
-				iv, &aes_key);
+
+  ret_val = ndn_aes_cbc_decrypt(cipher_text, cipher_text_size, plain_text, data_size, iv, &aes_key);
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_aes_test", "ndn_aes_cbc_decrypt", ret_val);
     _all_function_calls_succeeded = false;

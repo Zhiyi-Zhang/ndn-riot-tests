@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2018 Zhiyi Zhang, Edward Lu
  *
@@ -8,17 +7,12 @@
  */
 
 #include "name-encode-decode-tests.h"
-
 #include <stdio.h>
 #include <string.h>
-
 #include "name-encode-decode-tests-def.h"
 #include "../print-helpers.h"
 #include "../test-helpers.h"
-
 #include "ndn-lite/encode/name.h"
-#include "shell.h"
-#include "msg.h"
 
 static const char *_current_test_name;
 static bool _all_function_calls_succeeded = true;
@@ -30,18 +24,18 @@ bool run_name_encode_decode_tests(void) {
   for (int i = 0; i < NAME_ENCODE_DECODE_NUM_TESTS; i++) {
     _run_name_encode_decode_test(&name_encode_decode_tests[i]);
   }
-  
+
   return check_all_tests_passed(name_encode_decode_test_results, name_encode_decode_test_names,
                                 NAME_ENCODE_DECODE_NUM_TESTS);
 }
 
 void _run_name_encode_decode_test(name_encode_decode_test_t *test) {
-  
+
   _current_test_name = test->test_names[test->test_name_index];
   _all_function_calls_succeeded = true;
 
   int ret_val = -1;
-  
+
   // component initialization
   char comp1[] = "aaaaaa";
   name_component_t component;
@@ -80,7 +74,7 @@ void _run_name_encode_decode_test(name_encode_decode_test_t *test) {
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_name_encode_decode_test", "name_component_from_block", ret_val);
     _all_function_calls_succeeded = false;
-  }  
+  }
   printf("\n***component decoding***\n");
   printf("check type %u\n", (unsigned int) check_component.type);
   printf("check length %u\n", check_component.size);
@@ -173,8 +167,8 @@ void _run_name_encode_decode_test(name_encode_decode_test_t *test) {
       printf("%d ", check_name.components[i].value[j]);
     }
     printf("\n");
-  }  
-  
+  }
+
   if (_all_function_calls_succeeded)
   {
     *test->passed = true;
@@ -183,5 +177,5 @@ void _run_name_encode_decode_test(name_encode_decode_test_t *test) {
     printf("In _run_name_encode_decode_test, something went wrong.\n");
     *test->passed = false;
   }
-  
+
 }

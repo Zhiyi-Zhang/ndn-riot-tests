@@ -1,4 +1,3 @@
-
 /*
  * Copyright (C) 2018 Zhiyi Zhang, Tianyuan Yu, Edward Lu
  *
@@ -8,17 +7,12 @@
  */
 
 #include "metainfo-tests.h"
-
 #include <stdio.h>
-
 #include "metainfo-tests-def.h"
 #include "../print-helpers.h"
 #include "../test-helpers.h"
-
 #include "ndn-lite/encode/metainfo.h"
 #include "ndn-lite/encode/name.h"
-#include "shell.h"
-#include "msg.h"
 
 static const char *_current_test_name;
 static bool _all_function_calls_succeeded = true;
@@ -30,13 +24,13 @@ bool run_metainfo_tests(void) {
   for (int i = 0; i < METAINFO_NUM_TESTS; i++) {
     _run_metainfo_test(&metainfo_tests[i]);
   }
-  
+
   return check_all_tests_passed(metainfo_test_results, metainfo_test_names,
                                 METAINFO_NUM_TESTS);
 }
 
 void _run_metainfo_test(metainfo_test_t *test) {
-  
+
   _current_test_name = test->test_names[test->test_name_index];
   _all_function_calls_succeeded = true;
 
@@ -84,7 +78,7 @@ void _run_metainfo_test(metainfo_test_t *test) {
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_metainfo_test", "ndn_metainfo_from_tlv_block", ret_val);
     _all_function_calls_succeeded = false;
-  }  
+  }
   if (meta_decode.enable_ContentType == 0)
     printf("content_type correct\n");
   if (meta_decode.enable_FreshnessPeriod == 0)
@@ -93,7 +87,7 @@ void _run_metainfo_test(metainfo_test_t *test) {
   for (size_t i = 0; i < meta_decode.final_block_id.size; i++) {
     printf("%d ", meta_decode.final_block_id.value[i]);
   }
-  
+
   if (_all_function_calls_succeeded)
   {
     *test->passed = true;
