@@ -14,6 +14,7 @@
 #include "random/random-tests.h"
 #include "metainfo/metainfo-tests.h"
 #include "forwarder/forwarder-tests.h"
+#include "schematized-trust/trust-schema-tests.h"
 
 static char test_passed_string[] = "(passed) ";
 static char test_failed_string[] = "[FAILED]----------------------------------------------> ";
@@ -35,6 +36,7 @@ int main(void) {
   bool random_tests_result = run_random_tests();
   bool metainfo_tests_result = run_metainfo_tests();
   bool forwarder_tests_result = run_forwarder_tests();
+  bool schematized_trust_tests_result = run_trust_schema_tests();
 
   printf("\n");
 
@@ -71,8 +73,11 @@ int main(void) {
   result_string = metainfo_tests_result ? test_passed_string : test_failed_string;
   printf("%smetainfo_tests\n", result_string);
   result_string = forwarder_tests_result ? test_passed_string : test_failed_string;
-  printf("%sforwarder_testss\n", result_string);
+  printf("%sforwarder_tests\n", result_string);
+  result_string = schematized_trust_tests_result ? test_passed_string : test_failed_string;
+  printf("%sschematized_trust_tests\n", result_string);
 
+  
   printf("\n");
 
   if (aes_tests_result &&
@@ -87,7 +92,8 @@ int main(void) {
       sign_verify_tests_result &&
       random_tests_result &&
       metainfo_tests_result &&
-      forwarder_tests_result) {
+      forwarder_tests_result &&
+      schematized_trust_tests_result) {
     
       printf("ALL NDN-LITE OVER RIOT UNIT TESTS PASSED.\n");
       

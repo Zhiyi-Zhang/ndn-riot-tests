@@ -12,3 +12,4 @@ USEMODULE += fragmentation-support-tests
 USEMODULE += metainfo-tests
 USEMODULE += signature-tests
 USEMODULE += encoder-decoder-tests
+USEMODULE += schematized-trust-tests
