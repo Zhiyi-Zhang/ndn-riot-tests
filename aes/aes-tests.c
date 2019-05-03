@@ -67,7 +67,7 @@ void _run_aes_test(aes_test_t *test) {
   /* putchar('\n'); */
 
   // encrypt
-  uint32_t cipher_text_size = data_size + 16;
+  uint32_t cipher_text_size = ndn_aes_probe_padding_size(data_size) + NDN_AES_BLOCK_SIZE;
   ndn_aes_key_t aes_key;
   ndn_aes_key_init(&aes_key, key, key_size, 123);
   ret_val = ndn_aes_cbc_encrypt(data, data_size, cipher_text, cipher_text_size, iv, &aes_key);
@@ -89,8 +89,7 @@ void _run_aes_test(aes_test_t *test) {
   else {
     printf("In _run_aes_test, the encrypted text was the same as the original text.\n");
   }
-
-  ret_val = ndn_aes_cbc_decrypt(cipher_text, cipher_text_size, plain_text, data_size, iv, &aes_key);
+  ret_val = ndn_aes_cbc_decrypt(cipher_text, cipher_text_size, plain_text, sizeof(plain_text), iv, &aes_key);
   if (ret_val != 0) {
     print_error(_current_test_name, "_run_aes_test", "ndn_aes_cbc_decrypt", ret_val);
     _all_function_calls_succeeded = false;
